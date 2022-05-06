@@ -11,6 +11,7 @@ from typing import Generator, List, Tuple
 import librosa
 import pygame
 import soundfile
+import freesound
 
 DATA_ASSET_PREFIX = "data/"
 KEYBOARD_ASSET_PREFIX = "keyboards/"
@@ -159,6 +160,23 @@ def play_loop(
                 sound.fadeout(SOUND_FADE_MILLISECONDS)
 
     pygame.quit()
+
+
+def freesound_search_download():
+    client = freesound.FreesoundClient()
+    client.set_token("xbdYSYi9lDMRwSekK8ThcIAe7gserici1pz0VoPe", "token")
+
+    print("¿What kind of instrument or sound do you want your sampler to have?")
+    sound_type = input()
+
+    results = client.text_search(query=sound_type, fields="id,name,previews")
+
+    print("Sound files extracted from Freesound:")
+    for sound in results:
+        path_save = os.path.normpath(
+            os.getcwd() + os.sep + os.pardir + "/data/")  # to download all the content in the data folder
+        sound.retrieve_preview(path_save, sound.name)
+        print(sound.name)
 
 
 def play_sampler():
