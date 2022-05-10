@@ -7,6 +7,7 @@ import re
 import shutil
 from pathlib import Path
 from typing import Generator, List, Tuple
+from pydub import AudioSegment
 
 import librosa
 import pygame
@@ -26,6 +27,7 @@ ALLOWED_EVENTS = {pygame.KEYDOWN, pygame.KEYUP, pygame.QUIT}
 
 
 def get_audio_data(wav_path: str) -> Tuple:
+    print(wav_path)
     audio_data, framerate_hz = soundfile.read(wav_path)
     array_shape = audio_data.shape
     if len(array_shape) == 1:
@@ -118,7 +120,8 @@ def set_sampler(
         channels,
         allowedchanges=AUDIO_ALLOWED_CHANGES_HARDWARE_DETERMINED,
     )
-    screen_width = 1000
+
+    screen_width = 500
     screen_height = 300
     screen = pygame.display.set_mode((screen_width, screen_height))
     pygame.display.update()
@@ -142,10 +145,11 @@ def play_loop(
             elif event.key == pygame.K_ESCAPE:
                 loop = False
                 break
-            print("event:", event.unicode)
 
+            #print("event:", event.unicode)
             key = event.unicode
-            print("key:", key)
+            #print("key:", key)
+
             if key is None:
                 continue
             try:
@@ -169,19 +173,37 @@ def freesound_search_download():
     print("¿What kind of instrument or sound do you want your sampler to have?")
     sound_type = input()
 
-    results = client.text_search(query=sound_type, fields="id,name,previews")
+    results = client.text_search(query=sound_type, filter="tag:single-note channels:1", fields="id,name,previews")
+    path_save = os.path.normpath(os.getcwd() + os.sep + "data" + os.sep)  # to download all the content in the data folder
 
+    print("Sound file extracted from Freesound:")
+    results[0].retrieve_preview(path_save, results[0].name+".mp3")
+
+    print(results[0].name)
+    """
     print("Sound files extracted from Freesound:")
     for sound in results:
-        path_save = os.path.normpath(
-            os.getcwd() + os.sep + os.pardir + "/data/")  # to download all the content in the data folder
-        sound.retrieve_preview(path_save, sound.name)
+        sound.retrieve(path_save, sound.name)
         print(sound.name)
+    """
+    file_path = os.path.normpath(path_save + os.sep + results[0].name+".mp3")
+    dst = os.path.normpath(path_save + os.sep + results[0].name + ".wav")
+    audSeg = AudioSegment.from_mp3(file_path)
+    if os.path.exists(dst):
+        os.remove(dst)
+        print("The file has been deleted successfully")
+        audSeg.export(dst, format="wav")
+    else:
+        audSeg.export(dst, format="wav")
+    return results[0].name + ".wav"
+
 
 
 def play_sampler():
-    wav_path = os.path.normpath(os.getcwd() + os.sep + "data" + os.sep + "bowl.wav")
-    keyboard_path = os.path.normpath(os.getcwd() + os.sep + "keyboards" + os.sep + "keyboard.txt")
+    wav_name = freesound_search_download()
+
+    wav_path = os.path.normpath(os.getcwd() + os.sep + "data" + os.sep + wav_name)
+    keyboard_path = os.path.normpath(os.getcwd() + os.sep + "keyboards" + os.sep + "qwerty_piano.txt")
     clear_cache = False
 
     audio_data, framerate_hz, channels = get_audio_data(wav_path)
