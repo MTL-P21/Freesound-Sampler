@@ -28,15 +28,15 @@ def filter_options():
         created		        date		Date in which the sound was added to Freesound (see date example filters below).
         original_filename	string		Name given to the sound (tokenized).
         description		    string		Textual description given to the sound (tokenized).
-        tag			        string		Tag
-        license			    string		Name of the Creative Commons license, one of[“Attribution”, “Attribution Noncommercial”, “Creative Commons 0”].
+        tag			        string		Tag +
+        license			    string		Name of the Creative Commons license, one of[“Attribution”, “Attribution Noncommercial”, “Creative Commons 0”]. f 
         is_remix		    boolean	    Whether the sound is a remix of another Freesound sound.
         was_remixed		    boolean	    Whether the sound has remixes in Freesound.
-        type			    string		Original file type, one off [“wav”, “aiff”, “ogg”, “mp3”, “m4a”, “flac”].
-        duration		    numerical	Duration of sound in seconds.
-        samplerate		    integer		Samplerate.
+        type			    string		Original file type, one off [“wav”, “aiff”, “ogg”, “mp3”, “m4a”, “flac”]. ?
+        duration		    numerical	Duration of sound in seconds. + 
+        samplerate		    integer		Samplerate. {fields}
         filesize			integer		File size in bytes.
-        channels		    integer		Number of channels in sound (mostly 1 or 2).
+        channels		    integer		Number of channels in sound (mostly 1 or 2). !
         num_downloads	    integer		Number of times the sound has been downloaded.
         avg_rating		    numerical	Average rating for the sound in the range [0, 5].
         num_ratings		    integer		Number of times the sound has been rated.
@@ -140,6 +140,7 @@ def lowleveldescriptors():
         lowlevel.spectral_crest
         """)
 
+#fuera
 def rhythmdescriptors():
     print(""" 
         RHYTHM DESCRIPTORS
@@ -181,6 +182,7 @@ def tonaldescriptors():
         tonal.hpcp
         """)
 
+#fuera
 def sfxdescriptors():
     print(""" 
         SFX DESCRIPTORS
@@ -344,7 +346,6 @@ The proposed combined searches are
     else:
         print("Unknown Option Selected!")
         combinedSearch()
-
 
 
 def menu():
