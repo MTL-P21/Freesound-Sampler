@@ -173,7 +173,7 @@ def freesound_search_download():
     print("¿What kind of instrument or sound do you want your sampler to have?")
     sound_type = input()
 
-    results = client.text_search(query=sound_type, filter="tag:single-note channels:1", fields="id,name,previews")
+    results = client.text_search(query=sound_type, filter="tag:single-note channels:1", sort="score", fields="id,name,previews")
     path_save = os.path.normpath(os.getcwd() + os.sep + "data" + os.sep)  # to download all the content in the data folder
 
     print("Sound file extracted from Freesound:")
@@ -198,6 +198,16 @@ def freesound_search_download():
     return results[0].name + ".wav"
 
 
+def remove_silence(wav_path: str):
+    # read wav data
+    audio, sr = librosa.load(wav_path, sr=8000, mono=True)
+    print(audio.shape, sr)
+
+    clip = librosa.effects.trim(audio, top_db=10)
+    print(clip[0].shape)
+
+    soundfile.write(wav_path, clip[0], sr)
+
 
 def play_sampler():
     wav_name = freesound_search_download()
@@ -206,6 +216,7 @@ def play_sampler():
     keyboard_path = os.path.normpath(os.getcwd() + os.sep + "keyboards" + os.sep + "qwerty_piano.txt")
     clear_cache = False
 
+    remove_silence(wav_path)
     audio_data, framerate_hz, channels = get_audio_data(wav_path)
     results = get_keyboard_info(keyboard_path)
     keys, tones = results
