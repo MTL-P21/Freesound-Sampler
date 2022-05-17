@@ -170,7 +170,7 @@ def freesound_search_download():
     client = freesound.FreesoundClient()
     client.set_token("xbdYSYi9lDMRwSekK8ThcIAe7gserici1pz0VoPe", "token")
 
-    print("¿What kind of instrument or sound do you want your sampler to have?")
+    print("What kind of instrument or sound do you want your sampler to have?")
     sound_type = input()
 
     results = client.text_search(query=sound_type, filter="tag:single-note channels:1", sort="score", fields="id,name,previews")
