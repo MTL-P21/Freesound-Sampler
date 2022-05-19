@@ -3,11 +3,12 @@ import freesound
 import os
 import sys
 
+range = 10
 
 def createClient():
     api_key = os.getenv('FREESOUND_API_KEY', "xbdYSYi9lDMRwSekK8ThcIAe7gserici1pz0VoPe")
     if api_key is None:
-        print("You need to set your API key as an evironment variable", )
+        print("You need to set your API key as an environment variable", )
         print("named FREESOUND_API_KEY")
         sys.exit(-1)
 
@@ -20,19 +21,21 @@ def createClient():
 def printpage1(results):
     for sound in results:
         print("\t-", sound.name, "by", sound.username, sound.license)
-        print(str(sound.tags))
 
 
+# license:Creative Commons 0 no te devuelve nada
 def license():
     number = input(
         "Select the license of the sound you want to download\n1-Attribution\n2-Attribution Noncommercial\n3-Creative Commons 0\n ->")
     if number == "1":
+        # https://creativecommons.org/licenses/by-nc/4.0/
         return "license:Attribution "
     elif number == "2":
+        # https://creativecommons.org/licenses/by-nc/3.0/
         return "license:Attribution Noncommercial "
     elif number == "3":
-        return "license:Creative Commons 0 "  # revisar
-    else:
+        # https://creativecommons.org/publicdomain/zero/1.0/
+        return "license:Creative Commons 0 "
         print("Invalid Option")
         license()
 
@@ -45,9 +48,82 @@ def channels():
         return "channels:2 "
     else:
         print("Invalid Option")
-        channels()
+        return channels()
 
 
+def brightness():
+    b = input("From 1 to 100 select the desired brightness for the sound: ")
+    if 1 <= int(b) <= 100:
+        if (int(b) - range) < 1:
+            return "ac_brightness:[1 TO " + str((int(b) + range)) + "] "
+        elif (int(b) + range) > 100:
+            return "ac_brightness:[" + str((int(b) - range)) + " TO 100] "
+        else:
+            return "ac_brightness:[" + str((int(b) - range)) + " TO " + str((int(b) + range)) + "] "
+    else:
+        print("Invalid Option")
+        return brightness()
+
+
+def warmth():
+    b = input("From 1 to 100 select the desired warmth for the sound: ")
+    if 1 <= int(b) <= 100:
+        if (int(b) - range) < 1:
+            return "ac_warmth:[1 TO " + str((int(b) + range)) + "] "
+        elif (int(b) + range) > 100:
+            return "ac_warmth:[" + str((int(b) - range)) + " TO 100] "
+        else:
+            return "ac_warmth:[" + str((int(b) - range)) + " TO " + str((int(b) + range)) + "] "
+    else:
+        print("Invalid Option")
+        return warmth()
+
+
+def hardness():
+    b = input("From 1 to 100 select the desired hardness for the sound: ")
+    if 1 <= int(b) <= 100:
+        if (int(b) - range) < 1:
+            return "ac_hardness:[1 TO " + str((int(b) + range)) + "] "
+        elif (int(b) + range) > 100:
+            return "ac_hardness:[" + str((int(b) - range)) + " TO 100] "
+        else:
+            return "ac_hardness:[" + str((int(b) - range)) + " TO " + str((int(b) + range)) + "] "
+    else:
+        print("Invalid Option")
+        return hardness()
+
+
+def search():
+    client = createClient()
+
+    q = input("Which sound do you wish to download?  ")
+
+    #l = license()
+    c = channels()
+    b = brightness()
+    w = warmth()
+    h = hardness()
+
+    #print("FILTERS: ac_single_event:true " + c + b + w + h)
+
+    results = client.text_search(
+        query=q,
+        filter="ac_single_event:true " + c + b + w + h,
+        sort="score",
+        fields="id,name,tags,username,license",
+        page_size=1,
+    )
+
+    printpage1(results)
+
+    if results.count == 0:
+        print("No sound found")
+
+
+search()
+
+
+# unused functions
 def sharpness():
     s = input("From 1 to 100 select the desired sharpness for the sound: ")
     if 1 <= int(s) <= 100:
@@ -57,27 +133,10 @@ def sharpness():
         sharpness()
 
 
-def brightness():
-    b = input("From 1 to 100 select the desired brightness for the sound: ")
-    if 1 <= int(b) <= 100:
-        return "ac_brightness:[" + str((int(b) - 10)) + " TO " + str((int(b) + 10)) + "] "
-    else:
-        print("Invalid Option")
-        brightness()
-
-
-def depth():
-    d = input("From 1 to 100 select the desired depth for the sound: ")
-    if 1 <= int(d) <= 1000:
-        return "ac_depth:[" + str((int(d) - 10)) + " TO " + str((int(d) + 10)) + "] "
-    else:
-        print("Invalid Option")
-        depth()
-
-
 notes = ["A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#"]
 
 
+# Freesound no te devuelve nada
 def note():
     n = input("Input the desired note [“A”, “A#”, “B”, “C”, “C#”, “D”, “D#”, “E”, “F”, “F#”, “G”, “G#”]: ")
     if n in notes:
@@ -87,26 +146,10 @@ def note():
         note()
 
 
-def search():
-    client = createClient()
-
-    q = input("Which sound do you wish to download: ")
-
-    l = license()
-    c = channels()
-    s = sharpness()
-    b = brightness()
-    d = depth()
-    n = note()
-
-    print("FILTERS: ac_single_event:true " + l + c + s + b + d)
-
-    results = client.text_search(
-        query=q,  # "drum",
-        filter="ac_single_event:true " + l + c + s + b + d,  # ac_single_event:true
-        sort="score"
-    )
-    printpage1(results)
-
-
-search()
+def depth():
+    d = input("From 1 to 100 select the desired depth for the sound: ")
+    if 1 <= int(d) <= 1000:
+        return "ac_depth:[" + str((int(d) - 10)) + " TO " + str((int(d) + 10)) + "] "
+    else:
+        print("Invalid Option")
+        depth()
