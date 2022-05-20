@@ -9,7 +9,7 @@ e
 r
 5
 t
-left shift c c
+left shift c
 a
 z
 s

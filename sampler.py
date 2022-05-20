@@ -218,7 +218,7 @@ def set_anchor(keyboard_file: str, new_anchor: int):
     for i, line in enumerate(lines):
         line = line.strip()
         new_line = line
-        if not line.endswith(" c") & i == new_anchor:
+        if not (line.endswith(" c") and i == new_anchor):
             if line.endswith(" c"):
                 print("LINE PREV: ", line)
                 new_line = line.replace(" c", "")
