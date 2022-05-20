@@ -20,7 +20,17 @@ def createClient():
 
 def printpage1(results):
     for sound in results:
-        print("\t-", sound.name, "by", sound.username, sound.license)
+        print("\t-", sound.name, "by", sound.username, sound.license,
+              "Midi note (AC analysis): " + str(sound.ac_analysis.as_dict().get("ac_note_midi")))
+        print("Note name (ac_analysis): " + sound.ac_analysis.as_dict().get("ac_note_name"))
+        print("Tonality (ac_analysis): " + sound.ac_analysis.as_dict().get("ac_tonality"))
+        print("Key & Scale (analysis): " + sound.analysis.as_dict().get("tonal").get("key_key") + " " + sound.analysis.as_dict().get("tonal").get("key_scale"))
+        '''
+        for key, value in sound.analysis.as_dict().items():
+            print(key, ' : ', value)
+        for key, value in sound.ac_analysis.as_dict().items():
+            print(key, ' : ', value)
+        '''
 
 
 # license:Creative Commons 0 no te devuelve nada
@@ -36,6 +46,7 @@ def license():
     elif number == "3":
         # https://creativecommons.org/publicdomain/zero/1.0/
         return "license:Creative Commons 0 "
+    else:
         print("Invalid Option")
         license()
 
@@ -110,7 +121,8 @@ def search():
         query=q,
         filter="ac_single_event:true " + c + b + w + h,
         sort="score",
-        fields="id,name,tags,username,license",
+        fields="id,name,tags,username,license,analysis,ac_analysis",
+        descriptors="tonal.key_key,tonal.key_scale",
         page_size=1,
     )
 
@@ -121,6 +133,7 @@ def search():
 
 
 search()
+
 
 
 # unused functions
