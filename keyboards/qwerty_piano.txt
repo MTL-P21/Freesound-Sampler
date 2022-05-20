@@ -9,7 +9,7 @@ e
 r
 5
 t
-left shift
+left shift c c
 a
 z
 s
@@ -21,7 +21,7 @@ g
 b
 h
 n
-m c
+m
 k
 ,
 l

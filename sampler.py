@@ -61,7 +61,8 @@ def get_keyboard_info(keyboard_file: str):
             "Invalid keyboard file."
         )
     tones = [i - anchor_index for i in range(len(keys))]
-
+    print("Keys:", keys)
+    print("Tones:", tones)
     return keys, tones
 
 
@@ -209,12 +210,38 @@ def remove_silence(wav_path: str):
     soundfile.write(wav_path, clip[0], sr)
 
 
+def set_anchor(keyboard_file: str, new_anchor: int):
+    file = open(keyboard_file, "r")
+    replacement = ""
+    lines = file.readlines()
+    # using the for loop
+    for i, line in enumerate(lines):
+        line = line.strip()
+        new_line = line
+        if not line.endswith(" c") & i == new_anchor:
+            if line.endswith(" c"):
+                print("LINE PREV: ", line)
+                new_line = line.replace(" c", "")
+            if i == new_anchor:
+                print("LINE NEW: ", line)
+                new_line = line + " c"
+        replacement = replacement + new_line + "\n"
+    file.close()
+    # opening the file in write mode
+    out = open(keyboard_file, "w")
+    out.write(replacement)
+    out.close()
+
+
+
 def play_sampler():
     wav_name = freesound_search_download()
 
     wav_path = os.path.normpath(os.getcwd() + os.sep + "data" + os.sep + wav_name)
     keyboard_path = os.path.normpath(os.getcwd() + os.sep + "keyboards" + os.sep + "qwerty_piano.txt")
     clear_cache = False
+
+    set_anchor(keyboard_path, 11)
 
     remove_silence(wav_path)
     audio_data, framerate_hz, channels = get_audio_data(wav_path)
