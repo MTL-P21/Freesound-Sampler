@@ -9,7 +9,7 @@ e
 r
 5
 t
-left shift c
+left shift
 a
 z
 s
@@ -28,7 +28,7 @@ l
 .
 /
 '
-right shift
+right shift c
 return
 u
 8
