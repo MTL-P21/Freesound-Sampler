@@ -17,20 +17,11 @@ def createClient():
 
     return freesound_client
 
-
 def printpage1(results):
     for sound in results:
         print("\t-", sound.name, "by", sound.username, sound.license,
               "Midi note (AC analysis): " + str(sound.ac_analysis.as_dict().get("ac_note_midi")))
         print("Note name (ac_analysis): " + sound.ac_analysis.as_dict().get("ac_note_name"))
-        print("Tonality (ac_analysis): " + sound.ac_analysis.as_dict().get("ac_tonality"))
-        print("Key & Scale (analysis): " + sound.analysis.as_dict().get("tonal").get("key_key") + " " + sound.analysis.as_dict().get("tonal").get("key_scale"))
-        '''
-        for key, value in sound.analysis.as_dict().items():
-            print(key, ' : ', value)
-        for key, value in sound.ac_analysis.as_dict().items():
-            print(key, ' : ', value)
-        '''
 
 
 # license:Creative Commons 0 no te devuelve nada
@@ -166,3 +157,14 @@ def depth():
     else:
         print("Invalid Option")
         depth()
+
+
+'''
+        print("Tonality (ac_analysis): " + sound.ac_analysis.as_dict().get("ac_tonality"))
+        print("Key & Scale (analysis): " + sound.analysis.as_dict().get("tonal").get("key_key") + " " + sound.analysis.as_dict().get("tonal").get("key_scale"))
+
+        for key, value in sound.analysis.as_dict().items():
+            print(key, ' : ', value)
+        for key, value in sound.ac_analysis.as_dict().items():
+            print(key, ' : ', value)
+'''
