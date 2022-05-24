@@ -26,7 +26,6 @@ def printpage1(results):
         print("Note name (ac_analysis): " + sound.ac_analysis.as_dict().get("ac_note_name"))
 
 
-# license:Creative Commons 0 no te devuelve nada
 def license():
     option = input(
         "Select the license of the sound you want to download\n1-Attribution\n2-Attribution Noncommercial\n3-Creative Commons 0\n ->")

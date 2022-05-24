@@ -182,6 +182,23 @@ def createClient():
     return freesound_client
 
 
+def license():
+    option = input(
+        "Select the license of the sound you want to download\n1-Attribution\n2-Attribution Noncommercial\n3-Creative Commons 0\n ->")
+    if option == "1":
+        # https://creativecommons.org/licenses/by-nc/4.0/
+        return "license:\"Attribution\" "
+    elif option == "2":
+        # https://creativecommons.org/licenses/by-nc/3.0/
+        return "license:\"Attribution Noncommercial\" "
+    elif option == "3":
+        # https://creativecommons.org/publicdomain/zero/1.0/
+        return "license:\"Creative Commons 0\" "
+    else:
+        print("Invalid Option")
+        return license()
+
+
 def output(results):
     for sound in results:
         print("\t-", sound.name, "by", sound.username, sound.license,
@@ -248,7 +265,7 @@ def search(client):
 
 
     q = input("Which sound do you wish to download?  ")
-
+    l = license()
     c = channels()
     b = brightness()
     w = warmth()
@@ -256,7 +273,7 @@ def search(client):
 
     results = client.text_search(
         query=q,
-        filter="ac_single_event:true " + c + b + w + h,
+        filter="ac_single_event:true " + l + c + b + w + h,
         sort="score",
         fields="id,name,tags,username,license,ac_analysis,previews",
         page_size=1,
