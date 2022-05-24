@@ -3,7 +3,8 @@ import freesound
 import os
 import sys
 
-range = 10
+RANGE = 10
+
 
 def createClient():
     api_key = os.getenv('FREESOUND_API_KEY', "xbdYSYi9lDMRwSekK8ThcIAe7gserici1pz0VoPe")
@@ -17,6 +18,7 @@ def createClient():
 
     return freesound_client
 
+
 def printpage1(results):
     for sound in results:
         print("\t-", sound.name, "by", sound.username, sound.license,
@@ -26,20 +28,20 @@ def printpage1(results):
 
 # license:Creative Commons 0 no te devuelve nada
 def license():
-    number = input(
+    option = input(
         "Select the license of the sound you want to download\n1-Attribution\n2-Attribution Noncommercial\n3-Creative Commons 0\n ->")
-    if number == "1":
+    if option == "1":
         # https://creativecommons.org/licenses/by-nc/4.0/
-        return "license:Attribution "
-    elif number == "2":
+        return "license:\"Attribution\" "
+    elif option == "2":
         # https://creativecommons.org/licenses/by-nc/3.0/
-        return "license:Attribution Noncommercial "
-    elif number == "3":
+        return "license:\"Attribution Noncommercial\" "
+    elif option == "3":
         # https://creativecommons.org/publicdomain/zero/1.0/
-        return "license:Creative Commons 0 "
+        return "license:\"Creative Commons 0\" "
     else:
         print("Invalid Option")
-        license()
+        return license()
 
 
 def channels():
@@ -56,12 +58,12 @@ def channels():
 def brightness():
     b = input("From 1 to 100 select the desired brightness for the sound: ")
     if 1 <= int(b) <= 100:
-        if (int(b) - range) < 1:
-            return "ac_brightness:[1 TO " + str((int(b) + range)) + "] "
-        elif (int(b) + range) > 100:
-            return "ac_brightness:[" + str((int(b) - range)) + " TO 100] "
+        if (int(b) - RANGE) < 1:
+            return "ac_brightness:[1 TO " + str((int(b) + RANGE)) + "] "
+        elif (int(b) + RANGE) > 100:
+            return "ac_brightness:[" + str((int(b) - RANGE)) + " TO 100] "
         else:
-            return "ac_brightness:[" + str((int(b) - range)) + " TO " + str((int(b) + range)) + "] "
+            return "ac_brightness:[" + str((int(b) - RANGE)) + " TO " + str((int(b) + RANGE)) + "] "
     else:
         print("Invalid Option")
         return brightness()
@@ -70,12 +72,12 @@ def brightness():
 def warmth():
     b = input("From 1 to 100 select the desired warmth for the sound: ")
     if 1 <= int(b) <= 100:
-        if (int(b) - range) < 1:
-            return "ac_warmth:[1 TO " + str((int(b) + range)) + "] "
-        elif (int(b) + range) > 100:
-            return "ac_warmth:[" + str((int(b) - range)) + " TO 100] "
+        if (int(b) - RANGE) < 1:
+            return "ac_warmth:[1 TO " + str((int(b) + RANGE)) + "] "
+        elif (int(b) + RANGE) > 100:
+            return "ac_warmth:[" + str((int(b) - RANGE)) + " TO 100] "
         else:
-            return "ac_warmth:[" + str((int(b) - range)) + " TO " + str((int(b) + range)) + "] "
+            return "ac_warmth:[" + str((int(b) - RANGE)) + " TO " + str((int(b) + RANGE)) + "] "
     else:
         print("Invalid Option")
         return warmth()
@@ -84,12 +86,12 @@ def warmth():
 def hardness():
     b = input("From 1 to 100 select the desired hardness for the sound: ")
     if 1 <= int(b) <= 100:
-        if (int(b) - range) < 1:
-            return "ac_hardness:[1 TO " + str((int(b) + range)) + "] "
-        elif (int(b) + range) > 100:
-            return "ac_hardness:[" + str((int(b) - range)) + " TO 100] "
+        if (int(b) - RANGE) < 1:
+            return "ac_hardness:[1 TO " + str((int(b) + RANGE)) + "] "
+        elif (int(b) + RANGE) > 100:
+            return "ac_hardness:[" + str((int(b) - RANGE)) + " TO 100] "
         else:
-            return "ac_hardness:[" + str((int(b) - range)) + " TO " + str((int(b) + range)) + "] "
+            return "ac_hardness:[" + str((int(b) - RANGE)) + " TO " + str((int(b) + RANGE)) + "] "
     else:
         print("Invalid Option")
         return hardness()
@@ -100,21 +102,21 @@ def search():
 
     q = input("Which sound do you wish to download?  ")
 
-    #l = license()
+    l = license()
     c = channels()
     b = brightness()
     w = warmth()
     h = hardness()
 
-    #print("FILTERS: ac_single_event:true " + c + b + w + h)
+    # print("FILTERS: ac_single_event:true " + c + b + w + h)
 
     results = client.text_search(
         query=q,
-        filter="ac_single_event:true " + c + b + w + h,
+        filter="ac_single_event:true " + l + c + b + w + h,
         sort="score",
         fields="id,name,tags,username,license,analysis,ac_analysis",
         descriptors="tonal.key_key,tonal.key_scale",
-        page_size=1,
+        page_size=10,
     )
 
     printpage1(results)
@@ -124,7 +126,6 @@ def search():
 
 
 search()
-
 
 
 # unused functions
