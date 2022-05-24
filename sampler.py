@@ -266,14 +266,14 @@ def search(client):
 
     q = input("Which sound do you wish to download?  ")
     l = license()
-    c = channels()
+    #c = channels()
     b = brightness()
     w = warmth()
     h = hardness()
 
     results = client.text_search(
         query=q,
-        filter="ac_single_event:true " + l + c + b + w + h,
+        filter="ac_single_event:true channels:1 " + l + b + w + h,
         sort="score",
         fields="id,name,tags,username,license,ac_analysis,previews",
         page_size=1,

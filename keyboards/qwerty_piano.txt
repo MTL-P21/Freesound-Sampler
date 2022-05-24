@@ -24,12 +24,12 @@ n
 m
 k
 ,
-l c
+l
 .
 /
 '
 right shift
-return
+return c
 u
 8
 i
