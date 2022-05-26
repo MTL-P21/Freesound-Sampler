@@ -8,7 +8,7 @@ e
 4
 r
 5
-t
+t c
 left shift
 a
 z
@@ -29,7 +29,7 @@ l
 /
 '
 right shift
-return c
+return
 u
 8
 i
