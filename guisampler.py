@@ -25,329 +25,10 @@ BITS_32BIT = 32
 AUDIO_ALLOWED_CHANGES_HARDWARE_DETERMINED = 0
 SOUND_FADE_MILLISECONDS = 50
 ALLOWED_EVENTS = {pygame.KEYDOWN, pygame.KEYUP, pygame.QUIT}
-
+LOOP_SOUND = 0;
 RANGE = 10
 
-def get_audio_data(wav_path: str) -> Tuple:
-    print(wav_path)
-    audio_data, framerate_hz = soundfile.read(wav_path)
-    array_shape = audio_data.shape
-    if len(array_shape) == 1:
-        channels = 1
-    else:
-        channels = array_shape[1]
-    return audio_data, framerate_hz, channels
-
-
-def get_keyboard_info(keyboard_file: str):
-    with codecs.open(keyboard_file, encoding="utf-8") as k_file:
-        lines = k_file.readlines()
-    keys = []
-    anchor_index = -1
-    for i, line in enumerate(lines):
-        line = line.strip()
-        if not line:
-            continue
-        match = ANCHOR_NOTE_REGEX.search(line)
-        if match:
-            anchor_index = i
-            key = line[: match.start(0)]
-        elif line.endswith(ANCHOR_INDICATOR):
-            anchor_index = i
-            key = line[: -len(ANCHOR_INDICATOR)]
-        else:
-            key = line
-        keys.append(key)
-    if anchor_index == -1:
-        raise ValueError(
-            "Invalid keyboard file."
-        )
-    tones = [i - anchor_index for i in range(len(keys))]
-    print("Keys:", keys)
-    print("Tones:", tones)
-    return keys, tones
-
-
-def get_or_create_key_sounds(
-        wav_path: str,
-        sample_rate_hz: int,
-        channels: int,
-        tones: List[int],
-        clear_cache: bool,
-        keys: List[str],
-) -> Generator[pygame.mixer.Sound, None, None]:
-    sounds = []
-    y, sr = librosa.load(wav_path, sr=sample_rate_hz, mono=channels == 1)
-    file_name = os.path.splitext(os.path.basename(wav_path))[0]
-    folder_containing_wav = Path(wav_path).parent.absolute()
-    cache_folder_path = Path(folder_containing_wav, file_name)
-    if clear_cache and cache_folder_path.exists():
-        shutil.rmtree(cache_folder_path)
-    if not cache_folder_path.exists():
-        print("Generating samples for each key")
-        os.mkdir(cache_folder_path)
-    for i, tone in enumerate(tones):
-        cached_path = Path(cache_folder_path, "{}.wav".format(tone))
-        if Path(cached_path).exists():
-            print("Loading note {} out of {} for {}".format(i + 1, len(tones), keys[i]))
-            sound, sr = librosa.load(cached_path, sr=sample_rate_hz, mono=channels == 1)
-        else:
-            print(
-                "Transposing note {} out of {} for {}".format(
-                    i + 1, len(tones), keys[i]
-                )
-            )
-            sound = librosa.effects.pitch_shift(y, sr, n_steps=tone)
-            soundfile.write(cached_path, sound, sample_rate_hz, DESCRIPTOR_32BIT)
-        sounds.append(sound)
-
-    sounds = map(pygame.sndarray.make_sound, sounds)
-    return sounds
-
-
-def set_sampler(
-    framerate_hz: int,
-    channels: int):
-    pygame.quit()
-    pygame.display.init()
-    pygame.display.set_caption("sampler")
-
-    # block events that we don't want, this must be after display.init
-    pygame.event.set_blocked(None)
-    pygame.event.set_allowed(list(ALLOWED_EVENTS))
-
-    # audio
-    pygame.mixer.init(
-        framerate_hz,
-        BITS_32BIT,
-        channels,
-        allowedchanges=AUDIO_ALLOWED_CHANGES_HARDWARE_DETERMINED,
-    )
-
-    screen_width = 500
-    screen_height = 300
-    screen = pygame.display.set_mode((screen_width, screen_height))
-    pygame.display.update()
-    return screen
-
-
-def play_loop(
-    keys,
-    key_sounds: List[pygame.mixer.Sound],
-):
-    sound_by_key = dict(zip(keys, key_sounds))
-    print("sound by key",sound_by_key)
-
-    loop = True
-    while loop:
-        for event in pygame.event.get():
-
-            if event.type == pygame.QUIT:
-                loop = False
-                break
-            elif event.key == pygame.K_ESCAPE:
-                loop = False
-                break
-
-            #print("event:", event.unicode)
-            key = event.unicode
-            #print("key:", key)
-
-            if key is None:
-                continue
-            try:
-                sound = sound_by_key[key]
-            except KeyError:
-                continue
-            print("sound:", sound)
-            if event.type == pygame.KEYDOWN:
-                sound.stop()
-                sound.play(fade_ms=SOUND_FADE_MILLISECONDS)
-            elif event.type == pygame.KEYUP:
-                sound.fadeout(SOUND_FADE_MILLISECONDS)
-
-    pygame.quit()
-
-
-def createClient():
-    api_key = os.getenv('FREESOUND_API_KEY', "xbdYSYi9lDMRwSekK8ThcIAe7gserici1pz0VoPe")
-    if api_key is None:
-        print("You need to set your API key as an environment variable", )
-        print("named FREESOUND_API_KEY")
-        sys.exit(-1)
-
-    freesound_client = freesound.FreesoundClient()
-    freesound_client.set_token(api_key)
-
-    return freesound_client
-
-
-def output(results):
-    for sound in results:
-        print("\t-", sound.name, "by", sound.username, sound.license,
-              "\nMidi note (AC analysis): " + str(sound.ac_analysis.as_dict().get("ac_note_midi")))
-        print("Note name (AC analysis): " + sound.ac_analysis.as_dict().get("ac_note_name"))
-
-    return results[0].ac_analysis.as_dict().get("ac_note_midi")
-
-
-def license(option):
-    if str(option) == "1":
-        # https://creativecommons.org/licenses/by/
-        return "license:\"Attribution\" "
-    elif str(option) == "2":
-        # https://creativecommons.org/licenses/by-nc/
-        return "license:\"Attribution Noncommercial\" "
-    elif str(option) == "3":
-        # https://creativecommons.org/publicdomain/zero/1.0/
-        return "license:\"Creative Commons 0\" "
-    elif str(option) == "4":
-        return " "
-    else:
-        print("Invalid Option")
-
-
-def brightness(b, range):
-    if 1 <= int(b) <= 100:
-        if (int(b) - range) < 1:
-            return "ac_brightness:[1 TO " + str((int(b) + range)) + "] "
-        elif (int(b) + range) > 100:
-            return "ac_brightness:[" + str((int(b) - range)) + " TO 100] "
-        else:
-            return "ac_brightness:[" + str((int(b) - range)) + " TO " + str((int(b) + range)) + "] "
-    else:
-        print("Invalid Option")
-
-
-def warmth(b, range):
-    if 1 <= int(b) <= 100:
-        if (int(b) - range) < 1:
-            return "ac_warmth:[1 TO " + str((int(b) + range)) + "] "
-        elif (int(b) + range) > 100:
-            return "ac_warmth:[" + str((int(b) - range)) + " TO 100] "
-        else:
-            return "ac_warmth:[" + str((int(b) - range)) + " TO " + str((int(b) + range)) + "] "
-    else:
-        print("Invalid Option")
-
-
-def hardness(b, range):
-    if 1 <= int(b) <= 100:
-        if (int(b) - range) < 1:
-            return "ac_hardness:[1 TO " + str((int(b) + range)) + "] "
-        elif (int(b) + range) > 100:
-            return "ac_hardness:[" + str((int(b) - range)) + " TO 100] "
-        else:
-            return "ac_hardness:[" + str((int(b) - range)) + " TO " + str((int(b) + range)) + "] "
-    else:
-        print("Invalid Option")
-
-
-def search(client, range, q, ql, qb, qw, qh):
-    print("Search range " + str(range))
-
-    l = license(ql)
-    b = brightness(qb, range)
-    w = warmth(qw, range)
-    h = hardness(qh, range)
-
-    results = client.text_search(
-        query=q,
-        filter="ac_single_event:true " + l + b + w + h,
-        sort="score",
-        fields="id,name,tags,username,license,ac_analysis,previews",
-        descriptors="tonal.key_key,tonal.key_scale",
-        page_size=1,
-    )
-
-    if results.count == 0:
-        print("No sound found")
-        return search(client, range+1, q, ql, qb, qw, qh)
-    else:
-        return results
-
-def freesound_search_download(client, range, q, ql, qb, qw, qh):
-    results = search(client, range, q, ql, qb, qw, qh)
-    midi_note = output(results)
-
-    path_save = os.path.normpath(os.getcwd() + os.sep + "data" + os.sep)  # to download all the content in the data folder
-
-    print("Sound file extracted from Freesound:")
-    results[0].retrieve_preview(path_save, results[0].name+".mp3")
-
-    print(results[0].name)
-    """
-    print("Sound files extracted from Freesound:")
-    for sound in results:
-        sound.retrieve(path_save, sound.name)
-        print(sound.name)
-    """
-    file_path = os.path.normpath(path_save + os.sep + results[0].name+".mp3")
-    dst = os.path.normpath(path_save + os.sep + results[0].name + ".wav")
-    audSeg = AudioSegment.from_mp3(file_path)
-    if os.path.exists(dst):
-        os.remove(dst)
-        print("The file has been deleted successfully")
-        audSeg.export(dst, format="wav")
-    else:
-        audSeg.export(dst, format="wav")
-    return results[0].name + ".wav", midi_note
-
-
-def remove_silence(wav_path: str):
-    # read wav data
-    audio, sr = librosa.load(wav_path, sr=8000, mono=True)
-    print(audio.shape, sr)
-
-    clip = librosa.effects.trim(audio, top_db=10)
-    print(clip[0].shape)
-
-    soundfile.write(wav_path, clip[0], sr)
-
-
-def set_anchor(keyboard_file: str, new_anchor: int):
-    file = open(keyboard_file, "r")
-    replacement = ""
-    lines = file.readlines()
-    # using the for loop
-    for i, line in enumerate(lines):
-        line = line.strip()
-        new_line = line
-        if not (line.endswith(" c") and i == new_anchor):
-            if line.endswith(" c"):
-                print("LINE PREV: ", line)
-                new_line = line.replace(" c", "")
-            if i == new_anchor:
-                print("LINE NEW: ", line)
-                new_line = line + " c"
-        replacement = replacement + new_line + "\n"
-    file.close()
-    # opening the file in write mode
-    out = open(keyboard_file, "w")
-    out.write(replacement)
-    out.close()
-
-
-def play_sampler(client, range, q, ql, qb, qw, qh):
-    wav_name, midi_note = freesound_search_download(client, range, q, ql, qb, qw, qh)
-
-    wav_path = os.path.normpath(os.getcwd() + os.sep + "data" + os.sep + wav_name)
-    keyboard_path = os.path.normpath(os.getcwd() + os.sep + "keyboards" + os.sep + "qwerty_piano.txt")
-    clear_cache = False
-
-    set_anchor(keyboard_path, midi_note - 37)
-
-    remove_silence(wav_path)
-    audio_data, framerate_hz, channels = get_audio_data(wav_path)
-    results = get_keyboard_info(keyboard_path)
-    keys, tones = results
-    key_sounds = get_or_create_key_sounds(
-        wav_path, framerate_hz, channels, tones, clear_cache, keys
-    )
-    set_sampler(framerate_hz, channels)
-    play_loop(keys, key_sounds)
-
-#gui part
+# gui part
 
 window_width = 800
 window_height = 600
@@ -362,18 +43,19 @@ Warmth = 0
 Hardness = 0
 SlidersResults = [Brightness, Warmth, Hardness]
 
+
 class Slider:
     def __init__(self, x, y, w, h, pos):
         self.circle_x = x
         self.volume = 0
-        self.sliderRect = pg.Rect(x, y, w, h)
+        self.sliderRect = pygame.Rect(x, y, w, h)
         self.selected = False;
         self.pos = pos;
 
     def draw(self, screen):
-        pg.draw.rect(screen, (COLOR_4), self.sliderRect)
-        pg.draw.circle(screen, (COLOR_6), (self.circle_x, (self.sliderRect.h / 2 + self.sliderRect.y)),
-                       self.sliderRect.h * 0.5)
+        pygame.draw.rect(screen, (COLOR_4), self.sliderRect)
+        pygame.draw.circle(screen, (COLOR_6), (self.circle_x, (self.sliderRect.h / 2 + self.sliderRect.y)),
+                           self.sliderRect.h * 0.5)
 
     def get_pos(self):
         return self.pos
@@ -483,15 +165,12 @@ class OptionBox:
         return -1
 
 
-import pygame as pg
-
-
 class DropDown():
 
     def __init__(self, color_menu, color_option, x, y, w, h, font, main, options):
         self.color_menu = color_menu
         self.color_option = color_option
-        self.rect = pg.Rect(x, y, w, h)
+        self.rect = pygame.Rect(x, y, w, h)
         self.font = font
         self.main = main
         self.options = options
@@ -500,7 +179,7 @@ class DropDown():
         self.active_option = -1
 
     def draw(self, surf):
-        pg.draw.rect(surf, self.color_menu[self.menu_active], self.rect, 0)
+        pygame.draw.rect(surf, self.color_menu[self.menu_active], self.rect, 0)
         msg = self.font.render(self.main, 1, (0, 0, 0))
         surf.blit(msg, msg.get_rect(center=self.rect.center))
 
@@ -508,12 +187,12 @@ class DropDown():
             for i, text in enumerate(self.options):
                 rect = self.rect.copy()
                 rect.y += (i + 1) * self.rect.height
-                pg.draw.rect(surf, self.color_option[1 if i == self.active_option else 0], rect, 0)
+                pygame.draw.rect(surf, self.color_option[1 if i == self.active_option else 0], rect, 0)
                 msg = self.font.render(text, 1, (0, 0, 0))
                 surf.blit(msg, msg.get_rect(center=rect.center))
 
     def update(self, event_list):
-        mpos = pg.mouse.get_pos()
+        mpos = pygame.mouse.get_pos()
         self.menu_active = self.rect.collidepoint(mpos)
 
         self.active_option = -1
@@ -528,7 +207,7 @@ class DropDown():
             self.draw_menu = False
 
         for event in event_list:
-            if event.type == pg.MOUSEBUTTONDOWN and event.button == 1:
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 if self.menu_active:
                     self.draw_menu = not self.draw_menu
                 elif self.draw_menu and self.active_option >= 0:
@@ -540,7 +219,7 @@ class DropDown():
 class InputBox:
 
     def __init__(self, x, y, w, h, text=''):
-        self.rect = pg.Rect(x, y, w, h)
+        self.rect = pygame.Rect(x, y, w, h)
         self.color = COLOR_6
         self.text = text
         self.txt_surface = FONT.render(text, True, self.color)
@@ -548,7 +227,7 @@ class InputBox:
         self.initialTxt = text
 
     def handle_event(self, event):
-        if event.type == pg.MOUSEBUTTONDOWN:
+        if event.type == pygame.MOUSEBUTTONDOWN:
             if self.text == self.initialTxt:
                 self.text = ''
                 self.txt_surface = FONT.render(self.text, True, self.color)
@@ -560,12 +239,12 @@ class InputBox:
                 self.active = False
             # Change the current color of the input box.
             self.color = COLOR_1 if self.active else COLOR_6
-        if event.type == pg.KEYDOWN:
+        if event.type == pygame.KEYDOWN:
             if self.active:
-                if event.key == pg.K_RETURN:
+                if event.key == pygame.K_RETURN:
                     print(self.text)
-                    #self.text = ''
-                elif event.key == pg.K_BACKSPACE:
+                    # self.text = ''
+                elif event.key == pygame.K_BACKSPACE:
                     self.text = self.text[:-1]
                 else:
                     self.text += event.unicode
@@ -581,7 +260,7 @@ class InputBox:
         # Blit the text.
         screen.blit(self.txt_surface, (self.rect.x + 5, self.rect.y + 5))
         # Blit the rect.
-        pg.draw.rect(screen, self.color, self.rect, 2)
+        pygame.draw.rect(screen, self.color, self.rect, 2)
 
     def getText(self):
         return self.text
@@ -622,6 +301,7 @@ class button:
         pos = pygame.mouse.get_pos()
         if self.rect.collidepoint(pos):
             self.curclr = self.cngclr
+            print("CLICKED")
 
     def call_back(self, *args):
         if self.func:
@@ -667,13 +347,13 @@ def fn3():
     play_sampler(client, 2, Query, 4, SlidersResults[0], SlidersResults[1], SlidersResults[2])
 
 
-pg.init()
-COLOR_INACTIVE = pg.Color('lightskyblue3')
-COLOR_ACTIVE = pg.Color('dodgerblue2')
-FONT = pg.font.Font(None, 32)
+pygame.init()
+COLOR_INACTIVE = pygame.Color('lightskyblue3')
+COLOR_ACTIVE = pygame.Color('dodgerblue2')
+FONT = pygame.font.Font(None, 32)
 
-clock = pg.time.Clock()
-screen = pg.display.set_mode((window_width, window_height))
+clock = pygame.time.Clock()
+screen = pygame.display.set_mode((window_width, window_height))
 
 # COLORS
 COLOR_INACTIVE = (151, 186, 169)
@@ -692,21 +372,21 @@ list1 = DropDown(
     [COLOR_INACTIVE, COLOR_ACTIVE],
     [COLOR_LIST_INACTIVE, COLOR_LIST_ACTIVE],
     (window_width / 2) - 100, window_height / 3, 190, 50,
-    pg.font.SysFont(None, 30),
+    pygame.font.SysFont(None, 30),
     "Chnnels", ["Single Channel", "Dual Channel"])
 
 typeList1 = DropDown(
     [COLOR_INACTIVE, COLOR_ACTIVE],
     [COLOR_LIST_INACTIVE, COLOR_LIST_ACTIVE],
     (window_width / 2) - 300, window_height / 3, 190, 50,
-    pg.font.SysFont(None, 30),
+    pygame.font.SysFont(None, 30),
     "Format", ["wav", "aiff", "ogg", "mp3", "m4a", "flac"])
 
 licenceList1 = DropDown(
     [COLOR_INACTIVE, COLOR_ACTIVE],
     [COLOR_LIST_INACTIVE, COLOR_LIST_ACTIVE],
     80, 175, 190, 50,
-    pg.font.SysFont(None, 20),
+    pygame.font.SysFont(None, 20),
     "License", ["Attribution ", " Attribution Noncommercial", "Creative Commons 0"])
 
 input_box1 = InputBox(300, 100, 140, 32, "Query")
@@ -735,12 +415,363 @@ SliderValues = [BrightnessValue, WarmthValue, HardnessValue];
 
 selected_license = ""
 
+
+###############################################################
+
+def change_sound_loop():
+    print("LOOP_SOUND", LOOP_SOUND)
+
+
+button_loop = button(position=(400, 400), size=(100, 50), clr=(220, 220, 220), cngclr=(255, 0, 0),
+                     func=change_sound_loop(), text='SOUND LOOP')
+button_loop_list = [button_loop]
+
+
+def get_audio_data(wav_path: str) -> Tuple:
+    print(wav_path)
+    audio_data, framerate_hz = soundfile.read(wav_path)
+    array_shape = audio_data.shape
+    if len(array_shape) == 1:
+        channels = 1
+    else:
+        channels = array_shape[1]
+    return audio_data, framerate_hz, channels
+
+
+def get_keyboard_info(keyboard_file: str):
+    with codecs.open(keyboard_file, encoding="utf-8") as k_file:
+        lines = k_file.readlines()
+    keys = []
+    anchor_index = -1
+    for i, line in enumerate(lines):
+        line = line.strip()
+        if not line:
+            continue
+        match = ANCHOR_NOTE_REGEX.search(line)
+        if match:
+            anchor_index = i
+            key = line[: match.start(0)]
+        elif line.endswith(ANCHOR_INDICATOR):
+            anchor_index = i
+            key = line[: -len(ANCHOR_INDICATOR)]
+        else:
+            key = line
+        keys.append(key)
+    if anchor_index == -1:
+        raise ValueError(
+            "Invalid keyboard file."
+        )
+    tones = [i - anchor_index for i in range(len(keys))]
+    print("Keys:", keys)
+    print("Tones:", tones)
+    return keys, tones
+
+
+def get_or_create_key_sounds(
+        wav_path: str,
+        sample_rate_hz: int,
+        channels: int,
+        tones: List[int],
+        clear_cache: bool,
+        keys: List[str],
+) -> Generator[pygame.mixer.Sound, None, None]:
+    sounds = []
+    y, sr = librosa.load(wav_path, sr=sample_rate_hz, mono=channels == 1)
+    file_name = os.path.splitext(os.path.basename(wav_path))[0]
+    folder_containing_wav = Path(wav_path).parent.absolute()
+    cache_folder_path = Path(folder_containing_wav, file_name)
+    if clear_cache and cache_folder_path.exists():
+        shutil.rmtree(cache_folder_path)
+    if not cache_folder_path.exists():
+        print("Generating samples for each key")
+        os.mkdir(cache_folder_path)
+    for i, tone in enumerate(tones):
+        cached_path = Path(cache_folder_path, "{}.wav".format(tone))
+        if Path(cached_path).exists():
+            print("Loading note {} out of {} for {}".format(i + 1, len(tones), keys[i]))
+            sound, sr = librosa.load(cached_path, sr=sample_rate_hz, mono=channels == 1)
+        else:
+            print(
+                "Transposing note {} out of {} for {}".format(
+                    i + 1, len(tones), keys[i]
+                )
+            )
+            sound = librosa.effects.pitch_shift(y, sr, n_steps=tone)
+            soundfile.write(cached_path, sound, sample_rate_hz, DESCRIPTOR_32BIT)
+        sounds.append(sound)
+
+    sounds = map(pygame.sndarray.make_sound, sounds)
+    return sounds
+
+
+def set_sampler(
+        framerate_hz: int,
+        channels: int):
+    pygame.quit()
+    pygame.display.init()
+    pygame.display.set_caption("sampler")
+
+    # block events that we don't want, this must be after display.init
+    pygame.event.set_blocked(None)
+    pygame.event.set_allowed(list(ALLOWED_EVENTS))
+
+    # audio
+    pygame.mixer.init(
+        framerate_hz,
+        BITS_32BIT,
+        channels,
+        allowedchanges=AUDIO_ALLOWED_CHANGES_HARDWARE_DETERMINED,
+    )
+    screen = pygame.display.set_mode((window_width, window_height))
+    screen.fill(COLOR_3)
+    pygame.display.update()
+    return screen
+
+
+def play_loop(
+        keys,
+        key_sounds: List[pygame.mixer.Sound],
+        screen
+):
+    sound_by_key = dict(zip(keys, key_sounds))
+    print("sound by key", sound_by_key)
+
+    loop = True
+    while loop:
+
+
+        for event in pygame.event.get():
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    posit = pygame.mouse.get_pos()
+                    for button_loop_check in button_loop_list:
+                        if button_loop_check.rect.collidepoint(posit):
+                            button_loop_check.call_back()
+
+            elif event.type == pygame.QUIT:
+                loop = False
+                break
+
+            elif event.key == pygame.K_ESCAPE:
+                loop = False
+                break
+
+            # print("event:", event.unicode)
+            key = event.unicode
+            # print("key:", key)
+
+            if key is None:
+                continue
+            try:
+                sound = sound_by_key[key]
+            except KeyError:
+                continue
+            print("sound:", sound)
+            if event.type == pygame.KEYDOWN:
+                sound.stop()
+                if LOOP_SOUND:
+                    sound.play(fade_ms=SOUND_FADE_MILLISECONDS, loops=-1)
+                else:
+                    sound.play(fade_ms=SOUND_FADE_MILLISECONDS)
+            elif event.type == pygame.KEYUP:
+                sound.fadeout(SOUND_FADE_MILLISECONDS)
+
+        for b in button_loop_list:
+            b.draw(screen)
+
+        pygame.display.update()
+        pygame.display.flip()
+        clock.tick(30)
+    pygame.quit()
+
+
+def createClient():
+    api_key = os.getenv('FREESOUND_API_KEY', "xbdYSYi9lDMRwSekK8ThcIAe7gserici1pz0VoPe")
+    if api_key is None:
+        print("You need to set your API key as an environment variable", )
+        print("named FREESOUND_API_KEY")
+        sys.exit(-1)
+
+    freesound_client = freesound.FreesoundClient()
+    freesound_client.set_token(api_key)
+
+    return freesound_client
+
+
+def output(results):
+    for sound in results:
+        print("\t-", sound.name, "by", sound.username, sound.license,
+              "\nMidi note (AC analysis): " + str(sound.ac_analysis.as_dict().get("ac_note_midi")))
+        print("Note name (AC analysis): " + sound.ac_analysis.as_dict().get("ac_note_name"))
+
+    return results[0].ac_analysis.as_dict().get("ac_note_midi")
+
+
+def license(option):
+    if str(option) == "1":
+        # https://creativecommons.org/licenses/by/
+        return "license:\"Attribution\" "
+    elif str(option) == "2":
+        # https://creativecommons.org/licenses/by-nc/
+        return "license:\"Attribution Noncommercial\" "
+    elif str(option) == "3":
+        # https://creativecommons.org/publicdomain/zero/1.0/
+        return "license:\"Creative Commons 0\" "
+    elif str(option) == "4":
+        return " "
+    else:
+        print("Invalid Option")
+
+
+def brightness(b, range):
+    if 1 <= int(b) <= 100:
+        if (int(b) - range) < 1:
+            return "ac_brightness:[1 TO " + str((int(b) + range)) + "] "
+        elif (int(b) + range) > 100:
+            return "ac_brightness:[" + str((int(b) - range)) + " TO 100] "
+        else:
+            return "ac_brightness:[" + str((int(b) - range)) + " TO " + str((int(b) + range)) + "] "
+    else:
+        print("Invalid Option")
+
+
+def warmth(b, range):
+    if 1 <= int(b) <= 100:
+        if (int(b) - range) < 1:
+            return "ac_warmth:[1 TO " + str((int(b) + range)) + "] "
+        elif (int(b) + range) > 100:
+            return "ac_warmth:[" + str((int(b) - range)) + " TO 100] "
+        else:
+            return "ac_warmth:[" + str((int(b) - range)) + " TO " + str((int(b) + range)) + "] "
+    else:
+        print("Invalid Option")
+
+
+def hardness(b, range):
+    if 1 <= int(b) <= 100:
+        if (int(b) - range) < 1:
+            return "ac_hardness:[1 TO " + str((int(b) + range)) + "] "
+        elif (int(b) + range) > 100:
+            return "ac_hardness:[" + str((int(b) - range)) + " TO 100] "
+        else:
+            return "ac_hardness:[" + str((int(b) - range)) + " TO " + str((int(b) + range)) + "] "
+    else:
+        print("Invalid Option")
+
+
+def search(client, range, q, ql, qb, qw, qh):
+    print("Search range " + str(range))
+
+    l = license(ql)
+    b = brightness(qb, range)
+    w = warmth(qw, range)
+    h = hardness(qh, range)
+
+    results = client.text_search(
+        query=q,
+        filter="ac_single_event:true " + l + b + w + h,
+        sort="score",
+        fields="id,name,tags,username,license,ac_analysis,previews",
+        descriptors="tonal.key_key,tonal.key_scale",
+        page_size=1,
+    )
+
+    if results.count == 0:
+        print("No sound found")
+        return search(client, range + 1, q, ql, qb, qw, qh)
+    else:
+        return results
+
+
+def freesound_search_download(client, range, q, ql, qb, qw, qh):
+    results = search(client, range, q, ql, qb, qw, qh)
+    midi_note = output(results)
+
+    path_save = os.path.normpath(
+        os.getcwd() + os.sep + "data" + os.sep)  # to download all the content in the data folder
+
+    print("Sound file extracted from Freesound:")
+    results[0].retrieve_preview(path_save, results[0].name + ".mp3")
+
+    print(results[0].name)
+    """
+    print("Sound files extracted from Freesound:")
+    for sound in results:
+        sound.retrieve(path_save, sound.name)
+        print(sound.name)
+    """
+    file_path = os.path.normpath(path_save + os.sep + results[0].name + ".mp3")
+    dst = os.path.normpath(path_save + os.sep + results[0].name + ".wav")
+    audSeg = AudioSegment.from_mp3(file_path)
+    if os.path.exists(dst):
+        os.remove(dst)
+        print("The file has been deleted successfully")
+        audSeg.export(dst, format="wav")
+    else:
+        audSeg.export(dst, format="wav")
+    return results[0].name + ".wav", midi_note
+
+
+def remove_silence(wav_path: str):
+    # read wav data
+    audio, sr = librosa.load(wav_path, sr=8000, mono=True)
+    print(audio.shape, sr)
+
+    clip = librosa.effects.trim(audio, top_db=10)
+    print(clip[0].shape)
+
+    soundfile.write(wav_path, clip[0], sr)
+
+
+def set_anchor(keyboard_file: str, new_anchor: int):
+    file = open(keyboard_file, "r")
+    replacement = ""
+    lines = file.readlines()
+    # using the for loop
+    for i, line in enumerate(lines):
+        line = line.strip()
+        new_line = line
+        if not (line.endswith(" c") and i == new_anchor):
+            if line.endswith(" c"):
+                print("LINE PREV: ", line)
+                new_line = line.replace(" c", "")
+            if i == new_anchor:
+                print("LINE NEW: ", line)
+                new_line = line + " c"
+        replacement = replacement + new_line + "\n"
+    file.close()
+    # opening the file in write mode
+    out = open(keyboard_file, "w")
+    out.write(replacement)
+    out.close()
+
+
+def play_sampler(client, range, q, ql, qb, qw, qh):
+    wav_name, midi_note = freesound_search_download(client, range, q, ql, qb, qw, qh)
+
+    wav_path = os.path.normpath(os.getcwd() + os.sep + "data" + os.sep + wav_name)
+    keyboard_path = os.path.normpath(os.getcwd() + os.sep + "keyboards" + os.sep + "qwerty_piano.txt")
+    clear_cache = False
+
+    set_anchor(keyboard_path, midi_note - 37)
+
+    remove_silence(wav_path)
+    audio_data, framerate_hz, channels = get_audio_data(wav_path)
+    results = get_keyboard_info(keyboard_path)
+    keys, tones = results
+    key_sounds = get_or_create_key_sounds(
+        wav_path, framerate_hz, channels, tones, clear_cache, keys
+    )
+    screen = set_sampler(framerate_hz, channels)
+    play_loop(keys, key_sounds, screen)
+
+
 # Main Loop
 while scene == 0:
     screen.fill(COLOR_3)
     pygame.display.set_caption('Query and tags')
 
-    event_list = pg.event.get()
+    event_list = pygame.event.get()
     for event in event_list:
         if event.type == pygame.MOUSEBUTTONDOWN:
             for s in sliders:
@@ -761,8 +792,8 @@ while scene == 0:
                 s.unselect()
         for box in input_boxes:
             box.handle_event(event)
-            Query=box.getText()
-        if event.type == pg.QUIT:
+            Query = box.getText()
+        if event.type == pygame.QUIT:
             done = True
     License = licenceList1.update(event_list)
 
@@ -788,5 +819,5 @@ while scene == 0:
         v.draw(screen)
 
     pygame.display.update()
-    pg.display.flip()
+    pygame.display.flip()
     clock.tick(30)
