@@ -1,4 +1,6 @@
-#sampler part
+#!/usr/bin/env python
+
+import argparse
 import codecs
 import os
 import sys
@@ -106,7 +108,7 @@ def get_or_create_key_sounds(
 def set_sampler(
     framerate_hz: int,
     channels: int):
-
+    pygame.quit()
     pygame.display.init()
     pygame.display.set_caption("sampler")
 
@@ -264,7 +266,6 @@ def search(client, range, q, ql, qb, qw, qh):
     else:
         return results
 
-
 def freesound_search_download(client, range, q, ql, qb, qw, qh):
     results = search(client, range, q, ql, qb, qw, qh)
     midi_note = output(results)
@@ -353,14 +354,13 @@ window_height = 600
 scene = 0
 
 # Globals to store
-Query = ""
-selected_license = ""
-License = ""
+Query = "Piano"
+selected_license = "Attribution"
+License = "Attribution"
 Brightness = 0
 Warmth = 0
 Hardness = 0
 SlidersResults = [Brightness, Warmth, Hardness]
-
 
 class Slider:
     def __init__(self, x, y, w, h, pos):
@@ -648,18 +648,13 @@ class text:
 
 
 # call back functions
-def fn1():
-    print('button1')
-
-
-def fn2():
-    print('button2')
 
 
 def fn3():
     global Query
     global selected_license
     global SlidersResults
+    global scene
 
     print("\n")
     print("Text query: ", Query, "\n")
@@ -667,16 +662,16 @@ def fn3():
     print("Brightness: ", SlidersResults[0], "\n")
     print("Warmth: ", SlidersResults[1], "\n")
     print("Hardness: ", SlidersResults[2], "\n")
+    scene = -1
     client = createClient()
     play_sampler(client, 2, Query, 4, SlidersResults[0], SlidersResults[1], SlidersResults[2])
+
 
 pg.init()
 COLOR_INACTIVE = pg.Color('lightskyblue3')
 COLOR_ACTIVE = pg.Color('dodgerblue2')
 FONT = pg.font.Font(None, 32)
 
-pygame.init()
-pg.init()
 clock = pg.time.Clock()
 screen = pg.display.set_mode((window_width, window_height))
 
@@ -747,9 +742,7 @@ while scene == 0:
 
     event_list = pg.event.get()
     for event in event_list:
-        if event.type == pg.QUIT:
-            done = True
-        elif event.type == pygame.MOUSEBUTTONDOWN:
+        if event.type == pygame.MOUSEBUTTONDOWN:
             for s in sliders:
                 if s.on_slider_hold(pygame.mouse.get_pos()[0], pygame.mouse.get_pos()[1]):
                     s.select()
@@ -769,6 +762,8 @@ while scene == 0:
         for box in input_boxes:
             box.handle_event(event)
             Query=box.getText()
+        if event.type == pg.QUIT:
+            done = True
     License = licenceList1.update(event_list)
 
     if License >= 0:
@@ -795,37 +790,3 @@ while scene == 0:
     pygame.display.update()
     pg.display.flip()
     clock.tick(30)
-
-# run = false;
-
-while scene == 1:
-    pygame.display.set_caption('Filters')
-    clock.tick(30)
-
-    event_list = pg.event.get()
-    for event in event_list:
-        if event.type == pg.QUIT:
-            run = False
-
-    selected_option = list1.update(event_list)
-    selected_type = typeList1.update(event_list)
-    selected_licence = licenceList1.update(event_list)
-    if selected_option >= 0:
-        list1.main = list1.options[selected_option]
-        print(list1.main)
-    if selected_type >= 0:
-        typeList1.main = typeList1.options[selected_type]
-        print(typeList1.main)
-    if selected_licence >= 0:
-        licenceList1.main = licenceList1.options[selected_licence]
-        print(licenceList1.main)
-
-    screen.fill((255, 255, 255))
-    list1.draw(screen)
-    typeList1.draw(screen)
-    licenceList1.draw(screen)
-    pg.display.flip()
-
-
-pg.quit()
-exit()
