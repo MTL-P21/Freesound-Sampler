@@ -12,6 +12,8 @@ from pydub import AudioSegment
 
 import librosa
 import pygame
+import keyboardlayout as kl
+import keyboardlayout.pygame as klp
 import soundfile
 import freesound
 
@@ -520,12 +522,20 @@ def set_sampler(
         framerate_hz: int,
         channels: int):
     pygame.quit()
+
+    layout_name = kl.LayoutName.QWERTY
+
     pygame.display.init()
     pygame.display.set_caption("sampler")
 
     # block events that we don't want, this must be after display.init
     pygame.event.set_blocked(None)
     pygame.event.set_allowed(list(ALLOWED_EVENTS))
+
+    # fonts
+    pygame.font.init()
+
+    overrides = {}
 
     # audio
     pygame.mixer.init(
@@ -534,9 +544,47 @@ def set_sampler(
         channels,
         allowedchanges=AUDIO_ALLOWED_CHANGES_HARDWARE_DETERMINED,
     )
-    screen = pygame.display.set_mode((window_width, window_height))
-    screen.fill(COLOR_3)
+
+    screen_width = 50
+    screen_height = 50
+
+    # set the letter key size in pixels
+    key_size = 60
+    grey = pygame.Color('grey')
+    black = pygame.Color('black')
+    # set the keyboard position and color info
+    keyboard_info = kl.KeyboardInfo(
+        position=(0, 0),
+        padding=2,
+        color=grey
+    )
+    # set the letter key color, padding, and margin info in px
+    key_info = kl.KeyInfo(
+        margin=10,
+        color=grey,
+        txt_color=black,  # invert grey
+        txt_font=pygame.font.SysFont('Arial', key_size // 4),
+        txt_padding=(key_size // 6, key_size // 10)
+    )
+    # set the letter key size info in px
+    letter_key_size = (key_size, key_size)  # width, height
+    keyboard_layout = klp.KeyboardLayout(
+        layout_name,
+        keyboard_info,
+        letter_key_size,
+        key_info,
+    )
+    screen_width = keyboard_layout.rect.width
+    screen_height = keyboard_layout.rect.height
+    # set the pygame window to the size of the keyboard
+    screen = pygame.display.set_mode((screen_width, screen_height))
+    screen.fill(pygame.Color('black'))
+
+    # draw the keyboard on the pygame screen
+    if keyboard_layout:
+        keyboard_layout.draw(screen)
     pygame.display.update()
+
     return screen
 
 
