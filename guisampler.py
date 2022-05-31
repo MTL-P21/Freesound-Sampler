@@ -25,7 +25,7 @@ BITS_32BIT = 32
 AUDIO_ALLOWED_CHANGES_HARDWARE_DETERMINED = 0
 SOUND_FADE_MILLISECONDS = 50
 ALLOWED_EVENTS = {pygame.KEYDOWN, pygame.KEYUP, pygame.QUIT}
-LOOP_SOUND = 0;
+LOOP_SOUND = False;
 RANGE = 10
 
 # gui part
@@ -301,7 +301,6 @@ class button:
         pos = pygame.mouse.get_pos()
         if self.rect.collidepoint(pos):
             self.curclr = self.cngclr
-            print("CLICKED")
 
     def call_back(self, *args):
         if self.func:
@@ -345,6 +344,19 @@ def fn3():
     scene = -1
     client = createClient()
     play_sampler(client, 2, Query, 4, SlidersResults[0], SlidersResults[1], SlidersResults[2])
+
+
+def fn4():
+    global LOOP_SOUND
+    #button_loop.txt = "SOUND LOOP = " + str(LOOP_SOUND)
+    LOOP_SOUND = not LOOP_SOUND
+    if LOOP_SOUND:
+        button_loop.clr = [54, 96, 88]
+    else:
+        button_loop.clr = [220, 220, 220]
+
+    print("LOOP_SOUND:", LOOP_SOUND)
+
 
 
 pygame.init()
@@ -394,8 +406,14 @@ input_box2 = InputBox(100, 300, 140, 32, "Tags")
 
 input_boxes = [input_box1]
 
-button1 = button(position=(400, 400), size=(100, 50), clr=(220, 220, 220), cngclr=(255, 0, 0), func=fn3, text='Next')
-button_list = [button1];
+button_loop = button(position=(400, 400), size=(200, 50), clr=(220, 220, 220), cngclr=(255, 0, 0),
+                     func=fn4, text='SOUND LOOP')
+
+button1 = button(position=(400, 500), size=(100, 50), clr=(220, 220, 220), cngclr=(255, 0, 0), func=fn3, text='Next')
+button_list = [button1, button_loop]
+
+#text1 = text(msg=str(LOOP_SOUND), position=(300, 325), clr=[100, 100, 100], font="Segoe Print", font_size=15)
+#text_list = [text1]
 
 # Sliders
 BrightnessSlider = Slider(600, 200, 150, 10, 0);
@@ -418,13 +436,7 @@ selected_license = ""
 
 ###############################################################
 
-def change_sound_loop():
-    print("LOOP_SOUND", LOOP_SOUND)
 
-
-button_loop = button(position=(400, 400), size=(100, 50), clr=(220, 220, 220), cngclr=(255, 0, 0),
-                     func=change_sound_loop(), text='SOUND LOOP')
-button_loop_list = [button_loop]
 
 
 def get_audio_data(wav_path: str) -> Tuple:
@@ -530,25 +542,15 @@ def set_sampler(
 
 def play_loop(
         keys,
-        key_sounds: List[pygame.mixer.Sound],
-        screen
+        key_sounds: List[pygame.mixer.Sound]
 ):
     sound_by_key = dict(zip(keys, key_sounds))
     print("sound by key", sound_by_key)
 
     loop = True
     while loop:
-
-
         for event in pygame.event.get():
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                if event.button == 1:
-                    posit = pygame.mouse.get_pos()
-                    for button_loop_check in button_loop_list:
-                        if button_loop_check.rect.collidepoint(posit):
-                            button_loop_check.call_back()
-
-            elif event.type == pygame.QUIT:
+            if event.type == pygame.QUIT:
                 loop = False
                 break
 
@@ -576,12 +578,6 @@ def play_loop(
             elif event.type == pygame.KEYUP:
                 sound.fadeout(SOUND_FADE_MILLISECONDS)
 
-        for b in button_loop_list:
-            b.draw(screen)
-
-        pygame.display.update()
-        pygame.display.flip()
-        clock.tick(30)
     pygame.quit()
 
 
@@ -763,7 +759,7 @@ def play_sampler(client, range, q, ql, qb, qw, qh):
         wav_path, framerate_hz, channels, tones, clear_cache, keys
     )
     screen = set_sampler(framerate_hz, channels)
-    play_loop(keys, key_sounds, screen)
+    play_loop(keys, key_sounds)
 
 
 # Main Loop
@@ -773,7 +769,10 @@ while scene == 0:
 
     event_list = pygame.event.get()
     for event in event_list:
-        if event.type == pygame.MOUSEBUTTONDOWN:
+        if event.type == pygame.QUIT:
+            loop = False
+            break
+        elif event.type == pygame.MOUSEBUTTONDOWN:
             for s in sliders:
                 if s.on_slider_hold(pygame.mouse.get_pos()[0], pygame.mouse.get_pos()[1]):
                     s.select()
@@ -810,6 +809,8 @@ while scene == 0:
         box.draw(screen)
     for b in button_list:
         b.draw(screen)
+    #for t in text_list:
+        #t.draw(screen)
     for s in sliders:
         s.draw(screen)
     licenceList1.draw(screen)
