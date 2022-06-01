@@ -362,8 +362,8 @@ def fn4():
 pygame.init()
 COLOR_INACTIVE = pygame.Color('lightskyblue3')
 COLOR_ACTIVE = pygame.Color('dodgerblue2')
-FONT = pygame.font.Font(None, 32)
-font2 = pygame.font.Font(None, 100)
+FONT = pygame.font.Font('EuropaGroteskSH-Med.otf', 32)
+font2 = pygame.font.Font('EuropaGroteskSH-Med.otf', 90)
 
 clock = pygame.time.Clock()
 screen = pygame.display.set_mode((window_width, window_height))
@@ -825,7 +825,7 @@ while scene == 0:
         v.draw(screen)
 
     screen.blit(freesound_img, (100, 20))
-    screen.blit(text_surface, dest=(650, 82))
+    screen.blit(text_surface, dest=(650, 75))
 
     pygame.display.update()
     pygame.display.flip()
