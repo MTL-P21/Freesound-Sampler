@@ -364,8 +364,7 @@ def fn4():
     print("LOOP_SOUND:", LOOP_SOUND)
 
 
-pygame.init()
-pygame.display.init()
+
 # audio
 pygame.mixer.init(
     44100,
@@ -373,6 +372,11 @@ pygame.mixer.init(
     1,
     allowedchanges=AUDIO_ALLOWED_CHANGES_HARDWARE_DETERMINED,
 )
+pygame.init()
+pygame.display.init()
+pygame.mixer.set_num_channels(1)
+
+
 COLOR_INACTIVE = pygame.Color('lightskyblue3')
 COLOR_ACTIVE = pygame.Color('dodgerblue2')
 FONT = pygame.font.Font('EuropaGroteskSH-Med.otf', 32)
@@ -861,7 +865,7 @@ while loop:
             sound_by_key = SOUND_BY_KEY
             print("sound by key", sound_by_key)
             key = event.unicode
-            # print("key:", key)
+            print("key:", key)
 
             if key is None:
                 continue
