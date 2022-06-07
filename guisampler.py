@@ -45,6 +45,15 @@ Warmth = 0
 Hardness = 0
 SlidersResults = [Brightness, Warmth, Hardness]
 
+NOTE_DICT={
+    'C': 0,
+    'D': 2,
+    'E': 4,
+    'F': 5,
+    'G': 7,
+    'A': 9,
+    'B': 11
+}
 
 class Slider:
     def __init__(self, x, y, w, h, pos):
@@ -648,7 +657,7 @@ def output(results):
               "\nMidi note (AC analysis): " + str(sound.ac_analysis.as_dict().get("ac_note_midi")))
         print("Note name (AC analysis): " + sound.ac_analysis.as_dict().get("ac_note_name"))
 
-    return results[0].ac_analysis.as_dict().get("ac_note_midi")
+    return results[0].ac_analysis.as_dict().get("ac_note_name")
 
 
 def license(option):
@@ -729,7 +738,7 @@ def search(client, range, q, ql, qb, qw, qh):
 
 def freesound_search_download(client, range, q, ql, qb, qw, qh):
     results = search(client, range, q, ql, qb, qw, qh)
-    midi_note = output(results)
+    note_name = output(results)
 
     path_save = os.path.normpath(
         os.getcwd() + os.sep + "data" + os.sep)  # to download all the content in the data folder
@@ -753,7 +762,7 @@ def freesound_search_download(client, range, q, ql, qb, qw, qh):
         audSeg.export(dst, format="wav")
     else:
         audSeg.export(dst, format="wav")
-    return results[0].name + ".wav", midi_note
+    return results[0].name + ".wav", note_name
 
 
 def remove_silence(wav_path: str):
@@ -791,13 +800,15 @@ def set_anchor(keyboard_file: str, new_anchor: int):
 
 
 def play_sampler(client, range, q, ql, qb, qw, qh):
-    wav_name, midi_note = freesound_search_download(client, range, q, ql, qb, qw, qh)
+    wav_name, note_name = freesound_search_download(client, range, q, ql, qb, qw, qh)
 
     wav_path = os.path.normpath(os.getcwd() + os.sep + "data" + os.sep + wav_name)
-    keyboard_path = os.path.normpath(os.getcwd() + os.sep + "keyboards" + os.sep + "qwerty_piano.txt")
+    keyboard_path = os.path.normpath(os.getcwd() + os.sep + "keyboards" + os.sep + "keyboard.txt")
     clear_cache = False
 
-    set_anchor(keyboard_path, midi_note - 37)
+    first_char = note_name[0]
+    note_letter = NOTE_DICT.get(first_char)
+    set_anchor(keyboard_path, note_letter)
 
     remove_silence(wav_path)
     audio_data, framerate_hz, channels = get_audio_data(wav_path)

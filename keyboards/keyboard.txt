@@ -1,43 +1,12 @@
-`
-tab
-1
 q
-w
+2
+w c
 3
 e
-4
 r
 5
 t
-left shift
-a
-z
-s
-x
-c
-f
-v
-g
-b
-h
-n
-m c
-k
-,
-l
-.
-/
-'
-right shift
-return
+6
+y
+7
 u
-8
-i
-o
-0
-p
--
-[
-]
-backspace
-\
