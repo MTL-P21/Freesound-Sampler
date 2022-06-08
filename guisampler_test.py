@@ -385,7 +385,7 @@ font2 = pygame.font.Font('EuropaGroteskSH-Med.otf', 90)
 clock = pygame.time.Clock()
 display = pygame.display.Info()
 
-screen = pygame.display.set_mode((display.current_w, display.current_h))
+screen = pygame.display.set_mode((display.current_w - 50, display.current_h - 50))
 
 text_surface = font2.render("sampler", True, (0, 0, 0))
 
@@ -553,13 +553,14 @@ def set_sampler(
     screen_width = 50
     screen_height = 50
 
+    keyboard_pos = pygame.display.Info()
     # set the letter key size in pixels
     key_size = 60
     grey = pygame.Color('grey')
     black = pygame.Color('black')
     # set the keyboard position and color info
     keyboard_info = kl.KeyboardInfo(
-        position=(0, 0),
+        position=(10, keyboard_pos.current_h/1.4),
         padding=2,
         color=black
     )
@@ -858,30 +859,30 @@ while loop:
                 loop = False
                 break
                 # print("event:", event.unicode)
-        if SAMPLER_MAPPED and SOUND_BY_KEY is not None:
-            print("jeñdfdfsbgv")
-            key = event.unicode
-            print("key:", key)
-            sound_by_key = SOUND_BY_KEY
-            print("sound by key", sound_by_key)
-            key = event.unicode
-            print("key:", key)
+            elif SAMPLER_MAPPED and SOUND_BY_KEY is not None:
+                print("jeñdfdfsbgv")
+                key = event.unicode
+                print("key:", key)
+                sound_by_key = SOUND_BY_KEY
+                print("sound by key", sound_by_key)
+                key = event.unicode
+                print("key:", key)
 
-            if key is None:
-                continue
-            try:
-                sound = sound_by_key[key]
-            except KeyError:
-                continue
-            print("sound:", sound)
-            if event.type == pygame.KEYDOWN:
-                sound.stop()
-                if LOOP_SOUND:
-                    sound.play(fade_ms=SOUND_FADE_MILLISECONDS, loops=-1)
-                else:
-                    sound.play(fade_ms=SOUND_FADE_MILLISECONDS)
-            elif event.type == pygame.KEYUP:
-                sound.fadeout(SOUND_FADE_MILLISECONDS)
+                if key is None:
+                    continue
+                try:
+                    sound = sound_by_key[key]
+                except KeyError:
+                    continue
+                print("sound:", sound)
+                if event.type == pygame.KEYDOWN:
+                    sound.stop()
+                    if LOOP_SOUND:
+                        sound.play(fade_ms=SOUND_FADE_MILLISECONDS, loops=-1)
+                    else:
+                        sound.play(fade_ms=SOUND_FADE_MILLISECONDS)
+                elif event.type == pygame.KEYUP:
+                    sound.fadeout(SOUND_FADE_MILLISECONDS)
     License = licenceList1.update(event_list)
 
     if License >= 0:
