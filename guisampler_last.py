@@ -46,9 +46,9 @@ SlidersResults = [Brightness, Warmth, Hardness]
 
 
 class Slider:
-    def __init__(self, x, y, w, h, pos):
-        self.circle_x = x
-        self.volume = 0
+    def __init__(self, x, y, w, h, pos,ivol):
+        self.circle_x = w/100 * ivol + x
+        self.volume = ivol
         self.sliderRect = pygame.Rect(x, y, w, h)
         self.selected = False;
         self.pos = pos;
@@ -432,20 +432,28 @@ button_list = [button1, button_loop]
 #text_list = [text1]
 
 # Sliders
-BrightnessSlider = Slider(window_width/4 - 30,  window_height/4 + 70, 300, 20, 0);
-WarmthSlider = Slider(window_width/4 - 30, window_height/4 + 130, 300, 20, 1);
-HardnessSlider = Slider(window_width/4 - 30, window_height/4 + 190, 300, 20, 2);
+BrightnessSlider = Slider(window_width/4 - 30,  window_height/4 + 70, 300, 20, 0, SlidersResults[0]);
+WarmthSlider = Slider(window_width/4 - 30, window_height/4 + 130, 300, 20, 1, SlidersResults[1]);
+HardnessSlider = Slider(window_width/4 - 30, window_height/4 + 190, 300, 20, 2, SlidersResults[2]);
 sliders = [BrightnessSlider, WarmthSlider, HardnessSlider]
+
+
 # Sliders text
 BrightnessTAG = text("Brightness", [window_width/4 - 190, window_height/4 + 70], font_size=26)
 WarmthTAG = text("Warmth", [window_width/4 - 190, window_height/4 + 130], font_size=26)
 HardnessTAG = text("Hardness", [window_width/4 - 190, window_height/4 + 190], font_size=26)
 SliderTAGs = [BrightnessTAG, WarmthTAG, HardnessTAG]
+
 # Sliders Values
 BrightnessValue = text("0", [window_width/2, window_height/4 + 70], font_size=26)
 WarmthValue = text("0", [window_width/2, window_height/4 + 130], font_size=26)
 HardnessValue = text("0", [window_width/2, window_height/4 + 190], font_size=26)
 SliderValues = [BrightnessValue, WarmthValue, HardnessValue];
+
+
+SliderValues[0].update(str(SlidersResults[0]))
+SliderValues[1].update(str(SlidersResults[1]))
+SliderValues[2].update(str(SlidersResults[2]))
 
 selected_license = ""
 
