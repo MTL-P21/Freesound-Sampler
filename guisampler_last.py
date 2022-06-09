@@ -25,14 +25,14 @@ BITS_32BIT = 32
 AUDIO_ALLOWED_CHANGES_HARDWARE_DETERMINED = 0
 SOUND_FADE_MILLISECONDS = 50
 ALLOWED_EVENTS = {pygame.KEYDOWN, pygame.KEYUP, pygame.QUIT, pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP, pygame.K_ESCAPE}
-LOOP_SOUND = False;
+LOOP_SOUND = False
 RANGE = 10
 
 # gui part
 
 window_width = 1280
 window_height =720
-scene = 0
+loop = True
 Playing = False
 
 # Globals to store
@@ -452,9 +452,6 @@ selected_license = ""
 
 ###############################################################
 
-
-
-
 def get_audio_data(wav_path: str) -> Tuple:
     print(wav_path)
     audio_data, framerate_hz = soundfile.read(wav_path)
@@ -535,8 +532,7 @@ def get_or_create_key_sounds(
 def set_sampler(
         framerate_hz: int,
         channels: int):
-    #pygame.quit()
-    #pygame.display.init()
+
     pygame.display.set_caption("sampler")
 
     # block events that we don't want, this must be after display.init
@@ -550,9 +546,6 @@ def set_sampler(
         channels,
         allowedchanges=AUDIO_ALLOWED_CHANGES_HARDWARE_DETERMINED,
     )
-    #screen = pygame.display.set_mode((window_width, window_height))
-    #screen.fill(COLOR_3)
-    #pygame.display.update()
     return screen
 
 sound_by_key= None
@@ -565,7 +558,7 @@ def play_loop(
     global sound_by_key
     sound_by_key = dict(zip(keys, key_sounds))
     print("sound by key", sound_by_key)
-    Playing =True
+    Playing = True
 
 
 def createClient():
@@ -677,12 +670,7 @@ def freesound_search_download(client, range, q, ql, qb, qw, qh):
     results[0].retrieve_preview(path_save, results[0].name + ".mp3")
 
     print(results[0].name)
-    """
-    print("Sound files extracted from Freesound:")
-    for sound in results:
-        sound.retrieve(path_save, sound.name)
-        print(sound.name)
-    """
+
     file_path = os.path.normpath(path_save + os.sep + results[0].name + ".mp3")
     dst = os.path.normpath(path_save + os.sep + results[0].name + ".wav")
     audSeg = AudioSegment.from_mp3(file_path)
@@ -704,6 +692,14 @@ def remove_silence(wav_path: str):
     print(clip[0].shape)
 
     soundfile.write(wav_path, clip[0], sr)
+
+
+def anchor_position(midi_note: int):
+    octave = midi_note / 12 - 1
+    if octave <= 3:
+        return midi_note % 12
+    else:
+        return midi_note % 12 + 12
 
 
 def set_anchor(keyboard_file: str, new_anchor: int):
@@ -733,10 +729,10 @@ def play_sampler(client, range, q, ql, qb, qw, qh):
     wav_name, midi_note = freesound_search_download(client, range, q, ql, qb, qw, qh)
 
     wav_path = os.path.normpath(os.getcwd() + os.sep + "data" + os.sep + wav_name)
-    keyboard_path = os.path.normpath(os.getcwd() + os.sep + "keyboards" + os.sep + "qwerty_piano.txt")
+    keyboard_path = os.path.normpath(os.getcwd() + os.sep + "keyboards" + os.sep + "piano.txt")
     clear_cache = False
-
-    set_anchor(keyboard_path, midi_note - 37)
+    keyboard_anchor = anchor_position(midi_note)
+    set_anchor(keyboard_path, keyboard_anchor)
 
     remove_silence(wav_path)
     audio_data, framerate_hz, channels = get_audio_data(wav_path)
@@ -750,106 +746,102 @@ def play_sampler(client, range, q, ql, qb, qw, qh):
 
 
 # Main Loop
-while scene == 0:
-    #print(pygame.mouse.get_pos())
-    screen.fill(COLOR_3)
-    pygame.display.set_caption('Query and tags')
+if __name__ == "__main__":
+    while loop:
+        #print(pygame.mouse.get_pos())
+        screen.fill(COLOR_3)
+        pygame.display.set_caption('Query and tags')
 
-    slider_rect = pygame.rect.Rect(window_width/4 - 230, window_height/4 - 4, 2 / 4 * window_width,
-                                 window_height/3 + 10)
-    input_rect = pygame.rect.Rect(window_width / 4 - 230, window_height / 2 + 80, window_width/2 + 80,
-                                   window_height / 4 - 80)
-    pygame.draw.rect(screen, (124, 102, 164), slider_rect, border_radius=20)
-    pygame.draw.rect(screen, (124, 102, 164), input_rect, border_radius=20)
+        slider_rect = pygame.rect.Rect(window_width/4 - 230, window_height/4 - 4, 2 / 4 * window_width,
+                                     window_height/3 + 10)
+        input_rect = pygame.rect.Rect(window_width / 4 - 230, window_height / 2 + 80, window_width/2 + 80,
+                                       window_height / 4 - 80)
+        pygame.draw.rect(screen, (124, 102, 164), slider_rect, border_radius=20)
+        pygame.draw.rect(screen, (124, 102, 164), input_rect, border_radius=20)
 
-    event_list = pygame.event.get()
-    for event in event_list:
-        if Playing:
-            if event.type == pygame.KEYDOWN or event.type == pygame.KEYUP:
-                if event.type == pygame.QUIT:
-                    loop = False
-                    break
-                if event.key == pygame.K_ESCAPE:
-                    loop = False
-                    break
+        event_list = pygame.event.get()
+        for event in event_list:
+            if Playing:
+                if event.type == pygame.KEYDOWN or event.type == pygame.KEYUP:
+                    if event.type == pygame.QUIT:
+                        loop = False
+                        break
+                    if event.key == pygame.K_ESCAPE:
+                        loop = False
+                        break
 
-                # print("event:", event.unicode)
-                key = event.unicode
-                # print("key:", key)
+                    # print("event:", event.unicode)
+                    key = event.unicode
+                    # print("key:", key)
 
-                if key is None:
-                    continue
-                try:
-                    sound = sound_by_key[key]
-                except KeyError:
-                    continue
-                print("sound:", sound)
-                if event.type == pygame.KEYDOWN:
-                    sound.stop()
-                    if LOOP_SOUND:
-                        sound.play(fade_ms=SOUND_FADE_MILLISECONDS, loops=-1)
-                    else:
-                        sound.play(fade_ms=SOUND_FADE_MILLISECONDS)
-                elif event.type == pygame.KEYUP:
-                    sound.fadeout(SOUND_FADE_MILLISECONDS)
-        if event.type == pygame.QUIT:
-            loop = False
-            break
-        elif event.type == pygame.MOUSEBUTTONDOWN:
+                    if key is None:
+                        continue
+                    try:
+                        sound = sound_by_key[key]
+                    except KeyError:
+                        continue
+                    print("sound:", sound)
+                    if event.type == pygame.KEYDOWN:
+                        sound.stop()
+                        if LOOP_SOUND:
+                            sound.play(fade_ms=SOUND_FADE_MILLISECONDS, loops=-1)
+                        else:
+                            sound.play(fade_ms=SOUND_FADE_MILLISECONDS)
+                    elif event.type == pygame.KEYUP:
+                        sound.fadeout(SOUND_FADE_MILLISECONDS)
+            if event.type == pygame.QUIT:
+                loop = False
+                break
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                for s in sliders:
+                    if s.on_slider_hold(pygame.mouse.get_pos()[0], pygame.mouse.get_pos()[1]):
+                        s.select()
+                if event.button == 1:
+                    pos = pygame.mouse.get_pos()
+                    for b in button_list:
+                        if b.rect.collidepoint(pos):
+                            b.call_back()
             for s in sliders:
-                if s.on_slider_hold(pygame.mouse.get_pos()[0], pygame.mouse.get_pos()[1]):
-                    s.select()
-            if event.button == 1:
-                pos = pygame.mouse.get_pos()
-                for b in button_list:
-                    if b.rect.collidepoint(pos):
-                        b.call_back()
-        for s in sliders:
-            if s.get_selected():
-                s.handle_event(screen, pygame.mouse.get_pos()[0])
-                SlidersResults[s.get_pos()] = s.get_volume()
-                SliderValues[s.get_pos()].update(str(s.get_volume()))
-        if event.type == pygame.MOUSEBUTTONUP:
-            for s in sliders:
-                s.unselect()
+                if s.get_selected():
+                    s.handle_event(screen, pygame.mouse.get_pos()[0])
+                    SlidersResults[s.get_pos()] = s.get_volume()
+                    SliderValues[s.get_pos()].update(str(s.get_volume()))
+            if event.type == pygame.MOUSEBUTTONUP:
+                for s in sliders:
+                    s.unselect()
+            for box in input_boxes:
+                box.handle_event(event)
+                Query = box.getText()
+            if event.type == pygame.QUIT:
+                done = True
+        License = licenceList1.update(event_list)
+
+        if License >= 0:
+            licenceList1.main = licenceList1.options[License]
+            selected_license = licenceList1.main
+
         for box in input_boxes:
-            box.handle_event(event)
-            Query = box.getText()
-        if event.type == pygame.QUIT:
-            done = True
-    License = licenceList1.update(event_list)
+            box.update()
 
-    if License >= 0:
-        licenceList1.main = licenceList1.options[License]
-        selected_license = licenceList1.main
+        for box in input_boxes:
+            box.draw(screen)
+        for b in button_list:
+            b.draw(screen)
+        #for t in text_list:
+            #t.draw(screen)
+        for s in sliders:
+            s.draw(screen)
+        licenceList1.draw(screen)
+        for t in SliderTAGs:
+            t.draw(screen)
+        for v in SliderValues:
+            v.draw(screen)
 
-
-
-    for box in input_boxes:
-        box.update()
-
-    for box in input_boxes:
-        box.draw(screen)
-    for b in button_list:
-        b.draw(screen)
-    #for t in text_list:
-        #t.draw(screen)
-    for s in sliders:
-        s.draw(screen)
-    licenceList1.draw(screen)
-    for t in SliderTAGs:
-        t.draw(screen)
-    for v in SliderValues:
-        v.draw(screen)
-
-    screen.blit(freesound_img, (window_width/4 - 200 , window_height/4 - 190))
-    screen.blit(text_surface, dest=(window_width/4 + 360, window_height/4 - 125))
-    screen.blit(text_query, dest=(window_width/4 - 190, window_height/4 + 275))
-    screen.blit(text_sliders, dest=(window_width/4 - 190, window_height/4 + 20))
-
-
-
-    pygame.display.update()
-    pygame.display.flip()
-    clock.tick(30)
+        screen.blit(freesound_img, (window_width/4 - 200 , window_height/4 - 190))
+        screen.blit(text_surface, dest=(window_width/4 + 360, window_height/4 - 125))
+        screen.blit(text_query, dest=(window_width/4 - 190, window_height/4 + 275))
+        screen.blit(text_sliders, dest=(window_width/4 - 190, window_height/4 + 20))
+        pygame.display.update()
+        pygame.display.flip()
+        clock.tick(30)
 
