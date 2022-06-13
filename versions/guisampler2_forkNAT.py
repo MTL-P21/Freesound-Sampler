@@ -12,8 +12,6 @@ from pydub import AudioSegment
 
 import librosa
 import pygame
-import keyboardlayout as kl
-import keyboardlayout.pygame as klp
 import soundfile
 import freesound
 
@@ -27,13 +25,13 @@ BITS_32BIT = 32
 AUDIO_ALLOWED_CHANGES_HARDWARE_DETERMINED = 0
 SOUND_FADE_MILLISECONDS = 50
 ALLOWED_EVENTS = {pygame.KEYDOWN, pygame.KEYUP, pygame.QUIT}
-LOOP_SOUND = False
+LOOP_SOUND = False;
 RANGE = 10
 
 # gui part
 
-window_width = 800
-window_height = 600
+window_width = 1280
+window_height =720
 scene = 0
 
 # Globals to store
@@ -45,15 +43,6 @@ Warmth = 0
 Hardness = 0
 SlidersResults = [Brightness, Warmth, Hardness]
 
-NOTE_DICT={
-    'C': 0,
-    'D': 2,
-    'E': 4,
-    'F': 5,
-    'G': 7,
-    'A': 9,
-    'B': 11
-}
 
 class Slider:
     def __init__(self, x, y, w, h, pos):
@@ -65,7 +54,7 @@ class Slider:
 
     def draw(self, screen):
         pygame.draw.rect(screen, (COLOR_4), self.sliderRect)
-        pygame.draw.circle(screen, (COLOR_6), (self.circle_x, (self.sliderRect.h / 2 + self.sliderRect.y)),
+        pygame.draw.circle(screen, (GARNET), (self.circle_x, (self.sliderRect.h / 2 + self.sliderRect.y)),
                            self.sliderRect.h * 0.5)
 
     def get_pos(self):
@@ -231,7 +220,7 @@ class InputBox:
 
     def __init__(self, x, y, w, h, text=''):
         self.rect = pygame.Rect(x, y, w, h)
-        self.color = COLOR_6
+        self.color =COLOR_4
         self.text = text
         self.txt_surface = FONT.render(text, True, self.color)
         self.active = False
@@ -249,7 +238,7 @@ class InputBox:
             else:
                 self.active = False
             # Change the current color of the input box.
-            self.color = COLOR_1 if self.active else COLOR_6
+            self.color = COLOR_1 if self.active else GARNET
         if event.type == pygame.KEYDOWN:
             if self.active:
                 if event.key == pygame.K_RETURN:
@@ -264,7 +253,7 @@ class InputBox:
 
     def update(self):
         # Resize the box if the text is too long.
-        width = max(200, self.txt_surface.get_width() + 10)
+        width = max(600, self.txt_surface.get_width() + 10)
         self.rect.w = width
 
     def draw(self, screen):
@@ -278,7 +267,7 @@ class InputBox:
 
 
 class button:
-    def __init__(self, position, size, clr=[100, 100, 100], cngclr=None, func=None, text='', font="Segoe Print",
+    def __init__(self, position, size, clr=[100, 100, 100], cngclr=None, func=None, text='', font="Raleway",
                  font_size=16, font_clr=[0, 0, 0]):
         self.clr = clr
         self.size = size
@@ -319,7 +308,7 @@ class button:
 
 
 class text:
-    def __init__(self, msg, position, clr=[100, 100, 100], font="Segoe Print", font_size=15, mid=False):
+    def __init__(self, msg, position, clr=[232, 206, 255], font="Raleway", font_size=20, mid=False):
         self.position = position
         self.font = pygame.font.SysFont(font, font_size)
         self.txt_surf = self.font.render(msg, 1, clr)
@@ -362,9 +351,9 @@ def fn4():
     #button_loop.txt = "SOUND LOOP = " + str(LOOP_SOUND)
     LOOP_SOUND = not LOOP_SOUND
     if LOOP_SOUND:
-        button_loop.clr = [54, 96, 88]
+        button_loop.clr = COLOR_4
     else:
-        button_loop.clr = [220, 220, 220]
+        button_loop.clr = GARNET
 
     print("LOOP_SOUND:", LOOP_SOUND)
 
@@ -373,73 +362,83 @@ def fn4():
 pygame.init()
 COLOR_INACTIVE = pygame.Color('lightskyblue3')
 COLOR_ACTIVE = pygame.Color('dodgerblue2')
-FONT = pygame.font.Font(None, 32)
+#FONT = pygame.font.Font(None, 32)
+FONT = pygame.font.SysFont('Raleway', 26, bold=False, italic=False)
+FONT2 = pygame.font.SysFont('Raleway', 28, bold=False, italic=False)
+TITLE = pygame.font.SysFont('Raleway', 110, bold=False, italic=False)
+#font2 = pygame.font.Font(None, 100)
+#font2 = pygame.font.SysFont('Raleway', 72, bold=False, italic=False)
 
 clock = pygame.time.Clock()
 screen = pygame.display.set_mode((window_width, window_height))
 
-# COLORS
-COLOR_INACTIVE = (151, 186, 169)
-COLOR_ACTIVE = (183, 219, 201)
-COLOR_LIST_INACTIVE = (151, 186, 169)
-COLOR_LIST_ACTIVE = (183, 219, 201)
+text_surface = TITLE.render("sampler", True, (0, 0, 0))
+text_query = FONT2.render("What kind of sound do you want?", True, (0, 0, 0))
+text_sliders = FONT2.render("Select values for each one of this properties:", True, (0, 0, 0))
+freesound_img = pygame.image.load('freesound.png')
 
-COLOR_1 = [54, 96, 88]
-COLOR_2 = [151, 186, 169]
-COLOR_3 = [190, 204, 204]
-COLOR_4 = [238, 223, 206]
-COLOR_5 = [241, 176, 143]
-COLOR_6 = [216, 134, 91]
+# COLORS
+COLOR_INACTIVE = (159, 135, 200)
+COLOR_ACTIVE = (195, 170, 237) #Slider license active color
+COLOR_LIST_INACTIVE = (159, 135, 200)
+COLOR_LIST_ACTIVE = (195, 170, 237)
+
+COLOR_1 = [54, 96, 88] #Text input and square
+COLOR_2 = [159, 135, 200] #Slider button inactive
+COLOR_3 = [91, 71, 130] #Background color
+COLOR_4 = [232, 206, 255] #Bars
+COLOR_5 = [241, 176, 143] #Not used
+GARNET = [159, 135, 200] #Bars circles and input inactive square
 
 list1 = DropDown(
     [COLOR_INACTIVE, COLOR_ACTIVE],
     [COLOR_LIST_INACTIVE, COLOR_LIST_ACTIVE],
     (window_width / 2) - 100, window_height / 3, 190, 50,
-    pygame.font.SysFont(None, 30),
+    FONT,
     "Chnnels", ["Single Channel", "Dual Channel"])
 
 typeList1 = DropDown(
     [COLOR_INACTIVE, COLOR_ACTIVE],
     [COLOR_LIST_INACTIVE, COLOR_LIST_ACTIVE],
     (window_width / 2) - 300, window_height / 3, 190, 50,
-    pygame.font.SysFont(None, 30),
+    FONT,
     "Format", ["wav", "aiff", "ogg", "mp3", "m4a", "flac"])
 
 licenceList1 = DropDown(
     [COLOR_INACTIVE, COLOR_ACTIVE],
     [COLOR_LIST_INACTIVE, COLOR_LIST_ACTIVE],
-    80, 175, 190, 50,
-    pygame.font.SysFont(None, 20),
+    window_width/2 + 150, window_height/4 + 30, 300, 70,
+    FONT,
     "License", ["Attribution ", " Attribution Noncommercial", "Creative Commons 0"])
 
-input_box1 = InputBox(300, 100, 140, 32, "Query")
-input_box2 = InputBox(100, 300, 140, 32, "Tags")
+input_box1 = InputBox(window_width/4 - 190, window_height/2 + 127, window_width * 2 , 30, "Query")
+#input_box2 = InputBox(100, 300, 140, 32, "Tags")
 
 input_boxes = [input_box1]
 
-button_loop = button(position=(400, 400), size=(200, 50), clr=(220, 220, 220), cngclr=(255, 0, 0),
-                     func=fn4, text='SOUND LOOP')
+button_loop = button(position=(window_width/2 + 300, window_height/2 - 10), size=(300, 70), clr=COLOR_INACTIVE, cngclr=COLOR_ACTIVE,
+                     func=fn4, text='Sound loop', font_size=26)
 
-button1 = button(position=(400, 500), size=(100, 50), clr=(220, 220, 220), cngclr=(255, 0, 0), func=fn3, text='Next')
+button1 = button(position=(950, 670), size=(300, 70), clr=COLOR_INACTIVE, cngclr=COLOR_ACTIVE, func=fn3, text='G o !', font_size=30)
 button_list = [button1, button_loop]
 
 #text1 = text(msg=str(LOOP_SOUND), position=(300, 325), clr=[100, 100, 100], font="Segoe Print", font_size=15)
 #text_list = [text1]
 
 # Sliders
-BrightnessSlider = Slider(600, 200, 150, 10, 0);
-WarmthSlider = Slider(600, 250, 150, 10, 1);
-HardnessSlider = Slider(600, 300, 150, 10, 2);
+BrightnessSlider = Slider(window_width/4 - 30,  window_height/4 + 70, 300, 20, 0);
+WarmthSlider = Slider(window_width/4 - 30, window_height/4 + 130, 300, 20, 1);
+HardnessSlider = Slider(window_width/4 - 30, window_height/4 + 190, 300, 20, 2);
 sliders = [BrightnessSlider, WarmthSlider, HardnessSlider]
 # Sliders text
-BrightnessTAG = text("Brightness", [510, 197], font_size=23)
-WarmthTAG = text("Warmth", [510, 247], font_size=23)
-HardnessTAG = text("Hardness", [510, 297], font_size=23)
+BrightnessTAG = text("Brightness", [window_width/4 - 190, window_height/4 + 70], font_size=26)
+WarmthTAG = text("Warmth", [window_width/4 - 190, window_height/4 + 130], font_size=26)
+HardnessTAG = text("Hardness", [window_width/4 - 190, window_height/4 + 190], font_size=26)
 SliderTAGs = [BrightnessTAG, WarmthTAG, HardnessTAG]
 # Sliders Values
-BrightnessValue = text("0", [760, 200], font_size=23)
-WarmthValue = text("0", [760, 250], font_size=23)
-HardnessValue = text("0", [760, 300], font_size=23)
+BrightnessValue = text("0", [window_width/2, window_height/4 + 70], font_size=26)
+WarmthValue = text("0", [window_width/2, window_height/4 + 130], font_size=26)
+HardnessValue = text("0", [window_width/2, window_height/4 + 190], font_size=26)
 SliderValues = [BrightnessValue, WarmthValue, HardnessValue];
 
 selected_license = ""
@@ -531,20 +530,12 @@ def set_sampler(
         framerate_hz: int,
         channels: int):
     pygame.quit()
-
-    layout_name = kl.LayoutName.QWERTY
-
     pygame.display.init()
     pygame.display.set_caption("sampler")
 
     # block events that we don't want, this must be after display.init
     pygame.event.set_blocked(None)
     pygame.event.set_allowed(list(ALLOWED_EVENTS))
-
-    # fonts
-    pygame.font.init()
-
-    overrides = {}
 
     # audio
     pygame.mixer.init(
@@ -553,47 +544,9 @@ def set_sampler(
         channels,
         allowedchanges=AUDIO_ALLOWED_CHANGES_HARDWARE_DETERMINED,
     )
-
-    screen_width = 50
-    screen_height = 50
-
-    # set the letter key size in pixels
-    key_size = 60
-    grey = pygame.Color('grey')
-    black = pygame.Color('black')
-    # set the keyboard position and color info
-    keyboard_info = kl.KeyboardInfo(
-        position=(0, 0),
-        padding=2,
-        color=black
-    )
-    # set the letter key color, padding, and margin info in px
-    key_info = kl.KeyInfo(
-        margin=10,
-        color=grey,
-        txt_color=black,  # invert grey
-        txt_font=pygame.font.SysFont('Arial', key_size // 4),
-        txt_padding=(key_size // 6, key_size // 10)
-    )
-    # set the letter key size info in px
-    letter_key_size = (key_size, key_size)  # width, height
-    keyboard_layout = klp.KeyboardLayout(
-        layout_name,
-        keyboard_info,
-        letter_key_size,
-        key_info,
-    )
-    screen_width = keyboard_layout.rect.width
-    screen_height = keyboard_layout.rect.height
-    # set the pygame window to the size of the keyboard
-    screen = pygame.display.set_mode((screen_width, screen_height))
-    screen.fill(pygame.Color('black'))
-
-    # draw the keyboard on the pygame screen
-    if keyboard_layout:
-        keyboard_layout.draw(screen)
+    screen = pygame.display.set_mode((window_width, window_height))
+    screen.fill(COLOR_3)
     pygame.display.update()
-
     return screen
 
 
@@ -657,7 +610,7 @@ def output(results):
               "\nMidi note (AC analysis): " + str(sound.ac_analysis.as_dict().get("ac_note_midi")))
         print("Note name (AC analysis): " + sound.ac_analysis.as_dict().get("ac_note_name"))
 
-    return results[0].ac_analysis.as_dict().get("ac_note_name")
+    return results[0].ac_analysis.as_dict().get("ac_note_midi")
 
 
 def license(option):
@@ -738,7 +691,7 @@ def search(client, range, q, ql, qb, qw, qh):
 
 def freesound_search_download(client, range, q, ql, qb, qw, qh):
     results = search(client, range, q, ql, qb, qw, qh)
-    note_name = output(results)
+    midi_note = output(results)
 
     path_save = os.path.normpath(
         os.getcwd() + os.sep + "data" + os.sep)  # to download all the content in the data folder
@@ -762,7 +715,7 @@ def freesound_search_download(client, range, q, ql, qb, qw, qh):
         audSeg.export(dst, format="wav")
     else:
         audSeg.export(dst, format="wav")
-    return results[0].name + ".wav", note_name
+    return results[0].name + ".wav", midi_note
 
 
 def remove_silence(wav_path: str):
@@ -800,15 +753,13 @@ def set_anchor(keyboard_file: str, new_anchor: int):
 
 
 def play_sampler(client, range, q, ql, qb, qw, qh):
-    wav_name, note_name = freesound_search_download(client, range, q, ql, qb, qw, qh)
+    wav_name, midi_note = freesound_search_download(client, range, q, ql, qb, qw, qh)
 
     wav_path = os.path.normpath(os.getcwd() + os.sep + "data" + os.sep + wav_name)
-    keyboard_path = os.path.normpath(os.getcwd() + os.sep + "keyboards" + os.sep + "keyboard.txt")
+    keyboard_path = os.path.normpath(os.getcwd() + os.sep + "keyboards" + os.sep + "qwerty_piano.txt")
     clear_cache = False
 
-    first_char = note_name[0]
-    note_letter = NOTE_DICT.get(first_char)
-    set_anchor(keyboard_path, note_letter)
+    set_anchor(keyboard_path, midi_note - 37)
 
     remove_silence(wav_path)
     audio_data, framerate_hz, channels = get_audio_data(wav_path)
@@ -823,8 +774,16 @@ def play_sampler(client, range, q, ql, qb, qw, qh):
 
 # Main Loop
 while scene == 0:
+    #print(pygame.mouse.get_pos())
     screen.fill(COLOR_3)
     pygame.display.set_caption('Query and tags')
+
+    slider_rect = pygame.rect.Rect(window_width/4 - 230, window_height/4 - 4, 2 / 4 * window_width,
+                                 window_height/3 + 10)
+    input_rect = pygame.rect.Rect(window_width / 4 - 230, window_height / 2 + 80, window_width/2 + 80,
+                                   window_height / 4 - 80)
+    pygame.draw.rect(screen, (124, 102, 164), slider_rect, border_radius=20)
+    pygame.draw.rect(screen, (124, 102, 164), input_rect, border_radius=20)
 
     event_list = pygame.event.get()
     for event in event_list:
@@ -859,7 +818,7 @@ while scene == 0:
         licenceList1.main = licenceList1.options[License]
         selected_license = licenceList1.main
 
-        # print(pygame.mouse.get_pos()[0]);
+
 
     for box in input_boxes:
         box.update()
@@ -877,6 +836,13 @@ while scene == 0:
         t.draw(screen)
     for v in SliderValues:
         v.draw(screen)
+
+    screen.blit(freesound_img, (window_width/4 - 200 , window_height/4 - 190))
+    screen.blit(text_surface, dest=(window_width/4 + 360, window_height/4 - 125))
+    screen.blit(text_query, dest=(window_width/4 - 190, window_height/4 + 275))
+    screen.blit(text_sliders, dest=(window_width/4 - 190, window_height/4 + 20))
+
+
 
     pygame.display.update()
     pygame.display.flip()

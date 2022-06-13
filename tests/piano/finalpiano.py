@@ -53,6 +53,7 @@ key_to_note = {
         pygame.K_u: (35, False, False),  # B1
 }
 
+
 def draw_keyboard(window) -> None:
     '''Draw the octave keyboard on screen'''
 
@@ -90,6 +91,7 @@ def draw_keyboard(window) -> None:
             left += margin + white_width
         pygame.draw.rect(window, color_blue if on else color_black, (left, top, black_width, bottom - top))
         left += margin + white_width
+
 
 def main() -> None:
     '''The main entrypoint for our program'''
