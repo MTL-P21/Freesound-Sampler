@@ -52,6 +52,8 @@ color_white = (255, 255, 255)
 color_black = (0, 0, 0)
 color_red = (255, 0, 0)
 color_blue = (0, 0, 255)
+color_cyan = (0, 255, 255)
+color_yellow = (255, 211, 67)
 
 key_to_note = {
         # pygame_key_id: (pitch, black, on)
@@ -97,6 +99,7 @@ Brightness = 50
 Warmth = 50
 Hardness = 50
 SlidersResults = [Brightness, Warmth, Hardness]
+ANCHOR_NOTE = None
 
 
 class Slider:
@@ -907,7 +910,10 @@ def draw_keyboard(window) -> None:
         note, black, on = key_to_note[key]
         if black:
             continue
-        pygame.draw.rect(window, color_red if on else color_white, (left + window_width / 6, top + window_height / 1.6, white_width, bottom - top))
+        if note != ANCHOR_NOTE:
+            pygame.draw.rect(window, color_red if on else color_white, (left + window_width / 6, top + window_height / 1.6, white_width, bottom - top))
+        else:
+            pygame.draw.rect(window, color_red if on else color_cyan, (left + window_width / 6, top + window_height / 1.6, white_width, bottom - top))
         left += margin + white_width
 
     # Reset left for black keys
@@ -922,17 +928,23 @@ def draw_keyboard(window) -> None:
             continue
         if note == 18 or note == 25 or note == 30:  # Skip the inexistant black keys
             left += margin + white_width
-        pygame.draw.rect(window, color_blue if on else color_black, (left + window_width / 6, top + window_height / 1.6, black_width, bottom - top))
+        if note != ANCHOR_NOTE:
+            pygame.draw.rect(window, color_blue if on else color_black, (left + window_width / 6, top + window_height / 1.6, black_width, bottom - top))
+        else:
+            pygame.draw.rect(window, color_blue if on else color_cyan, (left + window_width / 6, top + window_height / 1.6, black_width, bottom - top))
         left += margin + white_width
 
 
 def play_sampler(client, range, q, ql, qb, qw, qh):
+    global ANCHOR_NOTE
+
     wav_name, midi_note = freesound_search_download(client, range, q, ql, qb, qw, qh)
 
     wav_path = os.path.normpath(os.getcwd() + os.sep + "data" + os.sep + wav_name)
     keyboard_path = os.path.normpath(os.getcwd() + os.sep + "keyboards" + os.sep + "piano.txt")
     clear_cache = False
     keyboard_anchor = anchor_position(midi_note)
+    ANCHOR_NOTE = keyboard_anchor + 12;
     set_anchor(keyboard_path, keyboard_anchor)
 
     remove_silence(wav_path)
@@ -1059,7 +1071,7 @@ if __name__ == "__main__":
         for v in SliderValues:
             v.draw(screen)
 
-        screen.blit(freesound_img, (100 , 30))
+        screen.blit(freesound_img, (100, 30))
         screen.blit(text_surface, dest=(650, 95))
         screen.blit(text_query, dest=(120, 500))
         screen.blit(text_sliders, dest=(120, 220))
