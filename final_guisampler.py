@@ -30,7 +30,7 @@ AUDIO_ALLOWED_CHANGES_HARDWARE_DETERMINED = 0
 SOUND_FADE_MILLISECONDS = 50
 ALLOWED_EVENTS = {pygame.KEYDOWN, pygame.KEYUP, pygame.QUIT, pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP, pygame.K_ESCAPE}
 LOOP_SOUND = False
-SUSTAINED_SOUND = True
+SUSTAINED_SOUND = False
 RANGE = 10
 
 # gui part
@@ -389,16 +389,25 @@ def fn3():
     global selected_license
     global SlidersResults
     global scene
+    global text_info1, text_info2, text_info3
 
     print("\n")
-    print("Text query: ", Query, "\n")
-    print("License option: ", selected_license, "\n")
-    print("Brightness: ", SlidersResults[0], "\n")
-    print("Warmth: ", SlidersResults[1], "\n")
-    print("Hardness: ", SlidersResults[2], "\n")
+    print("Text query: ", Query)
+    print("License option: ", selected_license)
+    print("Brightness: ", SlidersResults[0])
+    print("Warmth: ", SlidersResults[1])
+    print("Hardness: ", SlidersResults[2])
     #scene = -1
     client = createClient()
     play_sampler(client, 2, Query, 4, SlidersResults[0], SlidersResults[1], SlidersResults[2])
+    print("Sound name " + sound_name)
+    print("Sound username " + sound_username)
+    print("Sound license " + sound_license)
+    print("Sound original note " + sound_note)
+
+    text_info1 = FONT2.render("Sound name: " + sound_name, True, (232, 206, 255))
+    text_info2 = FONT2.render("Sound username: " + sound_username, True, (232, 206, 255))
+    text_info3 = FONT2.render("Sound original note: " + sound_note, True, (232, 206, 255))
 
 
 def fn4():
@@ -429,10 +438,10 @@ screen = pygame.display.set_mode((window_width, window_height))
 text_surface = TITLE.render("sampler", True, (0, 0, 0))
 text_query = FONT2.render("What kind of sound do you want?", True, (0, 0, 0))
 text_sliders = FONT2.render("Select values for each one of this properties:", True, (0, 0, 0))
-text_info = FONT2.render("Here you can read the audio's relevant data:", True, (0, 0, 0))
-text_info1 = FONT2.render("This is a static test", True, (232, 206, 255))
-text_info2 = FONT2.render("This is a static test", True, (232, 206, 255))
-text_info3 = FONT2.render("This is a static test", True, (232, 206, 255))
+text_info = FONT2.render("Audio's relevant data:", True, (0, 0, 0))
+text_info1 = FONT2.render("Sound name: ", True, (232, 206, 255))
+text_info2 = FONT2.render("Sound username: ", True, (232, 206, 255))
+text_info3 = FONT2.render("Sound original note: ", True, (232, 206, 255))
 #text_play = BIGFONT.render("Now it is time to play", True, (0, 0, 0))
 
 freesound_img = pygame.image.load('freesound.png')
@@ -469,7 +478,7 @@ licenceList1 = DropDown(
     [COLOR_LIST_INACTIVE, COLOR_LIST_ACTIVE],
     1100, 220, 300, 70,
     FONT,
-    "License", ["Attribution ", " Attribution Noncommercial", "Creative Commons 0"])
+    "License", ["Attribution", " Attribution Noncommercial", "Creative Commons 0"])
 
 input_box1 = InputBox(120, 530, 800 , 30, "Query")
 #input_box2 = InputBox(100, 300, 140, 32, "Tags")
@@ -644,6 +653,12 @@ def output(results):
 
     return results[0].ac_analysis.as_dict().get("ac_note_midi")
 
+def sound_info(results):
+        global sound_name, sound_username, sound_license, sound_note
+        sound_name = results[0].name
+        sound_username = results[0].username
+        sound_license = results[0].license
+        sound_note = results[0].ac_analysis.as_dict().get("ac_note_name")
 
 def license(option):
     if str(option) == "1":
@@ -724,6 +739,7 @@ def search(client, range, q, ql, qb, qw, qh):
 def freesound_search_download(client, range, q, ql, qb, qw, qh):
     results = search(client, range, q, ql, qb, qw, qh)
     midi_note = output(results)
+    sound_info(results)
 
     path_save = os.path.normpath(
         os.getcwd() + os.sep + "data" + os.sep)  # to download all the content in the data folder
@@ -942,17 +958,18 @@ if __name__ == "__main__":
         screen.fill(COLOR_3)
         pygame.display.set_caption('Query and tags')
 
-        slider_rect = pygame.rect.Rect(100, 200, 900,
-                                     260)
-        input_rect = pygame.rect.Rect(100, 480, 900,
-                                      100)
-
-        info_rect = pygame.rect.Rect(1090, 385, 660,
-                                      200)
+        slider_rect = pygame.rect.Rect(100, 200, 900, 260)
+        input_rect = pygame.rect.Rect(100, 480, 900, 100)
+        info_rect = pygame.rect.Rect(1090, 385, 660, 200)
         pygame.draw.rect(screen, (124, 102, 164), slider_rect, border_radius=20)
         pygame.draw.rect(screen, (124, 102, 164), input_rect, border_radius=20)
         pygame.draw.rect(screen, (124, 102, 164), info_rect, border_radius=20)
         draw_keyboard(screen)
+
+        screen.blit(text_info, dest=(1120, 400))
+        screen.blit(text_info1, dest=(1120, 450))
+        screen.blit(text_info2, dest=(1120, 480))
+        screen.blit(text_info3, dest=(1120, 510))
 
         event_list = pygame.event.get()
         for event in event_list:
@@ -1041,12 +1058,6 @@ if __name__ == "__main__":
             t.draw(screen)
         for v in SliderValues:
             v.draw(screen)
-
-
-        screen.blit(text_info, dest=(1120, 400))
-        screen.blit(text_info1, dest=(1120, 450))
-        screen.blit(text_info2, dest=(1120, 480))
-        screen.blit(text_info3, dest=(1120, 510))
 
         screen.blit(freesound_img, (100 , 30))
         screen.blit(text_surface, dest=(650, 95))
