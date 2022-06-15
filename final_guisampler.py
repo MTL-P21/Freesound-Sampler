@@ -34,12 +34,7 @@ SUSTAINED_SOUND = False
 RANGE = 10
 
 # gui part
-pygame.mixer.init(
-        44100,
-        BITS_32BIT,
-        1,
-        allowedchanges=AUDIO_ALLOWED_CHANGES_HARDWARE_DETERMINED,
-)
+
 pygame.init()
 infoObject = pygame.display.Info()
 window_width = infoObject.current_w - 100
@@ -447,7 +442,7 @@ text_info2 = FONT2.render("Sound username: ", True, (232, 206, 255))
 text_info3 = FONT2.render("Sound original note: ", True, (232, 206, 255))
 #text_play = BIGFONT.render("Now it is time to play", True, (0, 0, 0))
 
-freesound_img = pygame.image.load('freesound.png')
+freesound_img = pygame.image.load('versions/freesound.png')
 
 # COLORS
 COLOR_INACTIVE = (159, 135, 200)
@@ -614,10 +609,11 @@ def set_sampler(
     pygame.event.set_allowed(list(ALLOWED_EVENTS))
 
     # audio
+    pygame.mixer.quit()
     pygame.mixer.init(
         framerate_hz,
         BITS_32BIT,
-        channels,
+        1,
         allowedchanges=AUDIO_ALLOWED_CHANGES_HARDWARE_DETERMINED,
     )
     return screen
@@ -776,7 +772,7 @@ def remove_silence(wav_path: str):
 
 
 def anchor_position(midi_note: int):
-    octave = midi_note / 12 - 1
+    octave = midi_note // 12 - 1
     if octave <= 3:
         return midi_note % 12
     else:
