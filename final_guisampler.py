@@ -419,6 +419,16 @@ def fn4():
 
     print("LOOP_SOUND:", LOOP_SOUND)
 
+def fn5():
+    global SUSTAINED_SOUND
+    SUSTAINED_SOUND = not SUSTAINED_SOUND
+    if SUSTAINED_SOUND:
+        button_sustained.clr = COLOR_4
+    else:
+        button_sustained.clr = GARNET
+
+    print("SUSTAINED_SOUND:", SUSTAINED_SOUND)
+
 
 COLOR_INACTIVE = pygame.Color('lightskyblue3')
 COLOR_ACTIVE = pygame.Color('dodgerblue2')
@@ -486,8 +496,11 @@ input_boxes = [input_box1]
 button_loop = button(position=(1600, 255), size=(300, 70), clr=COLOR_INACTIVE, cngclr=COLOR_ACTIVE,
                      func=fn4, text='Sound loop', font_size=26)
 
+button_sustained = button(position=(1250, 340), size=(300, 70), clr=COLOR_INACTIVE, cngclr=COLOR_ACTIVE,
+                     func=fn5, text='Sustained sound', font_size=26)
+
 button1 = button(position=(850, 535), size=(200, 50), clr=COLOR_INACTIVE, cngclr=COLOR_ACTIVE, func=fn3, text='Search', font_size=26)
-button_list = [button1, button_loop]
+button_list = [button1, button_loop, button_sustained]
 
 #text1 = text(msg=str(LOOP_SOUND), position=(300, 325), clr=[100, 100, 100], font="Segoe Print", font_size=15)
 #text_list = [text1]
