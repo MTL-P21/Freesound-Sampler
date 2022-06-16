@@ -612,6 +612,13 @@ def set_sampler(
         framerate_hz: int,
         channels: int):
 
+    pygame.mixer.quit()
+    pygame.mixer.init(
+        framerate_hz,
+        BITS_32BIT,
+        1,
+        allowedchanges=AUDIO_ALLOWED_CHANGES_HARDWARE_DETERMINED,
+    )
     pygame.display.set_caption("sampler")
 
     # block events that we don't want, this must be after display.init
@@ -781,7 +788,7 @@ def remove_silence(wav_path: str):
 
 
 def anchor_position(midi_note: int):
-    octave = midi_note / 12 - 1
+    octave = midi_note // 12 - 1
     if octave <= 3:
         return midi_note % 12
     else:
