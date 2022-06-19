@@ -32,6 +32,7 @@ ALLOWED_EVENTS = {pygame.KEYDOWN, pygame.KEYUP, pygame.QUIT, pygame.MOUSEBUTTOND
 LOOP_SOUND = False
 SUSTAINED_SOUND = False
 RANGE = 10
+ERROR = False
 
 # gui part
 
@@ -387,7 +388,7 @@ def fn3():
     global selected_license
     global SlidersResults
     global scene
-    global text_info1, text_info2, text_info3
+    global text_info1, text_info2, text_info3, text_info4
 
     print("\n")
     print("Text query: ", Query)
@@ -406,6 +407,7 @@ def fn3():
     text_info1 = FONT2.render("Sound name: " + sound_name, True, (232, 206, 255))
     text_info2 = FONT2.render("Sound username: " + sound_username, True, (232, 206, 255))
     text_info3 = FONT2.render("Sound original note: " + sound_note, True, (232, 206, 255))
+    text_info4 = FONT2.render("No sound matches the search. Please try again.", True, (154, 42, 42))
 
 
 def fn4():
@@ -429,9 +431,22 @@ def fn5():
 
     print("SUSTAINED_SOUND:", SUSTAINED_SOUND)
 
+# COLORS
+COLOR_INACTIVE = (159, 135, 200)
+COLOR_ACTIVE = (195, 170, 237) #Slider license active color
+COLOR_LIST_INACTIVE = (159, 135, 200)
+COLOR_LIST_ACTIVE = (195, 170, 237)
 
-COLOR_INACTIVE = pygame.Color('lightskyblue3')
-COLOR_ACTIVE = pygame.Color('dodgerblue2')
+COLOR_1 = [54, 96, 88] #Text input and square
+COLOR_2 = [159, 135, 200] #Slider button inactive
+COLOR_3 = [91, 71, 130] #Background color
+COLOR_4 = [232, 206, 255] #Bars
+COLOR_5 = [241, 176, 143] #Not used
+GARNET = [159, 135, 200] #Bars circles and input inactive square
+
+
+#COLOR_INACTIVE = pygame.Color('lightskyblue3')
+#COLOR_ACTIVE = pygame.Color('dodgerblue2')
 #FONT = pygame.font.Font(None, 32)
 FONT = pygame.font.SysFont('Raleway', 26, bold=False, italic=False)
 FONT2 = pygame.font.SysFont('Raleway', 28, bold=False, italic=False)
@@ -450,22 +465,12 @@ text_info = FONT2.render("Audio's relevant data:", True, (0, 0, 0))
 text_info1 = FONT2.render("Sound name: ", True, (232, 206, 255))
 text_info2 = FONT2.render("Sound username: ", True, (232, 206, 255))
 text_info3 = FONT2.render("Sound original note: ", True, (232, 206, 255))
+text_info4 = FONT2.render(" ", True, (232, 206, 255))
 #text_play = BIGFONT.render("Now it is time to play", True, (0, 0, 0))
 
 freesound_img = pygame.image.load('versions/freesound.png')
 
-# COLORS
-COLOR_INACTIVE = (159, 135, 200)
-COLOR_ACTIVE = (195, 170, 237) #Slider license active color
-COLOR_LIST_INACTIVE = (159, 135, 200)
-COLOR_LIST_ACTIVE = (195, 170, 237)
 
-COLOR_1 = [54, 96, 88] #Text input and square
-COLOR_2 = [159, 135, 200] #Slider button inactive
-COLOR_3 = [91, 71, 130] #Background color
-COLOR_4 = [232, 206, 255] #Bars
-COLOR_5 = [241, 176, 143] #Not used
-GARNET = [159, 135, 200] #Bars circles and input inactive square
 
 list1 = DropDown(
     [COLOR_INACTIVE, COLOR_ACTIVE],
@@ -667,10 +672,17 @@ def output(results):
 
 def sound_info(results):
         global sound_name, sound_username, sound_license, sound_note
-        sound_name = results[0].name
-        sound_username = results[0].username
-        sound_license = results[0].license
-        sound_note = results[0].ac_analysis.as_dict().get("ac_note_name")
+        if results is not None:
+            sound_name = results[0].name
+            sound_username = results[0].username
+            sound_license = results[0].license
+            sound_note = results[0].ac_analysis.as_dict().get("ac_note_name")
+        else:
+            sound_name = ""
+            sound_username = ""
+            sound_license = ""
+            sound_note = ""
+
 
 def license(option):
     if str(option) == "1":
@@ -740,37 +752,41 @@ def search(client, range, q, ql, qb, qw, qh):
         descriptors="tonal.key_key,tonal.key_scale",
         page_size=1,
     )
-
-    if results.count == 0:
+    if range > 45:
+        print("Out of range")
+        return None
+    elif results.count == 0:
         print("No sound found")
-        return search(client, range + 1, q, ql, qb, qw, qh)
+        return search(client, range + 2, q, ql, qb, qw, qh)
     else:
         return results
 
 
 def freesound_search_download(client, range, q, ql, qb, qw, qh):
     results = search(client, range, q, ql, qb, qw, qh)
-    midi_note = output(results)
     sound_info(results)
+    if results is not None:
+        midi_note = output(results)
 
-    path_save = os.path.normpath(
-        os.getcwd() + os.sep + "data" + os.sep)  # to download all the content in the data folder
+        path_save = os.path.normpath(
+            os.getcwd() + os.sep + "data" + os.sep)  # to download all the content in the data folder
 
-    print("Sound file extracted from Freesound:")
-    results[0].retrieve_preview(path_save, results[0].name + ".mp3")
+        print("Sound file extracted from Freesound:")
+        results[0].retrieve_preview(path_save, results[0].name + ".mp3")
 
-    print(results[0].name)
+        print(results[0].name)
 
-    file_path = os.path.normpath(path_save + os.sep + results[0].name + ".mp3")
-    dst = os.path.normpath(path_save + os.sep + results[0].name + ".wav")
-    audSeg = AudioSegment.from_mp3(file_path)
-    if os.path.exists(dst):
-        os.remove(dst)
-        print("The file has been deleted successfully")
-        audSeg.export(dst, format="wav")
-    else:
-        audSeg.export(dst, format="wav")
-    return results[0].name + ".wav", midi_note
+        file_path = os.path.normpath(path_save + os.sep + results[0].name + ".mp3")
+        dst = os.path.normpath(path_save + os.sep + results[0].name + ".wav")
+        audSeg = AudioSegment.from_mp3(file_path)
+        if os.path.exists(dst):
+            os.remove(dst)
+            print("The file has been deleted successfully")
+            audSeg.export(dst, format="wav")
+        else:
+            audSeg.export(dst, format="wav")
+        return results[0].name + ".wav", midi_note
+    return None, None
 
 
 def remove_silence(wav_path: str):
@@ -945,31 +961,35 @@ def draw_keyboard(window) -> None:
 
 
 def play_sampler(client, range, q, ql, qb, qw, qh):
-    global ANCHOR_NOTE
+    global ANCHOR_NOTE, ERROR
 
     wav_name, midi_note = freesound_search_download(client, range, q, ql, qb, qw, qh)
 
-    wav_path = os.path.normpath(os.getcwd() + os.sep + "data" + os.sep + wav_name)
-    keyboard_path = os.path.normpath(os.getcwd() + os.sep + "keyboards" + os.sep + "piano.txt")
-    clear_cache = False
-    keyboard_anchor = anchor_position(midi_note)
-    ANCHOR_NOTE = keyboard_anchor + 12;
-    set_anchor(keyboard_path, keyboard_anchor)
+    if wav_name is not None:
+        wav_path = os.path.normpath(os.getcwd() + os.sep + "data" + os.sep + wav_name)
+        keyboard_path = os.path.normpath(os.getcwd() + os.sep + "keyboards" + os.sep + "piano.txt")
+        clear_cache = False
+        keyboard_anchor = anchor_position(midi_note)
+        ANCHOR_NOTE = keyboard_anchor + 12;
+        set_anchor(keyboard_path, keyboard_anchor)
 
-    remove_silence(wav_path)
+        remove_silence(wav_path)
 
-    if SUSTAINED_SOUND:
-        wav_path = generate_sustained_loop(wav_path, wav_path.split('.')[0] + "_l.wav", extension=20)
+        if SUSTAINED_SOUND:
+            wav_path = generate_sustained_loop(wav_path, wav_path.split('.')[0] + "_l.wav", extension=20)
 
 
-    audio_data, framerate_hz, channels = get_audio_data(wav_path)
-    results = get_keyboard_info(keyboard_path)
-    keys, tones = results
-    key_sounds = get_or_create_key_sounds(
-        wav_path, framerate_hz, channels, tones, clear_cache, keys
-    )
-    screen = set_sampler(framerate_hz, channels)
-    play_loop(keys, key_sounds)
+        audio_data, framerate_hz, channels = get_audio_data(wav_path)
+        results = get_keyboard_info(keyboard_path)
+        keys, tones = results
+        key_sounds = get_or_create_key_sounds(
+            wav_path, framerate_hz, channels, tones, clear_cache, keys
+        )
+        screen = set_sampler(framerate_hz, channels)
+        play_loop(keys, key_sounds)
+        ERROR = False
+    else:
+        ERROR = True
 
 
 # Main Loop
@@ -991,6 +1011,8 @@ if __name__ == "__main__":
         screen.blit(text_info1, dest=(1120, 450))
         screen.blit(text_info2, dest=(1120, 480))
         screen.blit(text_info3, dest=(1120, 510))
+        if ERROR:
+            screen.blit(text_info4, dest=(1120, 545))
 
         event_list = pygame.event.get()
         for event in event_list:
