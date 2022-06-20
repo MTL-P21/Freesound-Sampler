@@ -28,7 +28,7 @@ DESCRIPTOR_32BIT = "FLOAT"
 BITS_32BIT = 32
 AUDIO_ALLOWED_CHANGES_HARDWARE_DETERMINED = 0
 SOUND_FADE_MILLISECONDS = 50
-ALLOWED_EVENTS = {pygame.KEYDOWN, pygame.KEYUP, pygame.QUIT, pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP, pygame.K_ESCAPE}
+ALLOWED_EVENTS = {pygame.KEYDOWN, pygame.KEYUP, pygame.QUIT, pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP, pygame.K_ESCAPE, pygame.K_RETURN}
 LOOP_SOUND = False
 SUSTAINED_SOUND = False
 RANGE = 10
@@ -468,7 +468,7 @@ text_info3 = FONT2.render("Sound original note: ", True, (232, 206, 255))
 text_info4 = FONT2.render(" ", True, (232, 206, 255))
 #text_play = BIGFONT.render("Now it is time to play", True, (0, 0, 0))
 
-freesound_img = pygame.image.load('versions/freesound.png')
+freesound_img = pygame.image.load('freesound.png')
 
 
 
@@ -1054,6 +1054,12 @@ if __name__ == "__main__":
                             if on:
                                 key_to_note[event_key] = note, black, False
                         sound.fadeout(SOUND_FADE_MILLISECONDS)
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RETURN:
+                    fn3()
+                if event.key == pygame.K_ESCAPE:
+                    loop = False
+                    break
             if event.type == pygame.QUIT:
                 loop = False
                 break
