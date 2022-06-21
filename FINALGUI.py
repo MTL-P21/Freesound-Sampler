@@ -413,7 +413,7 @@ def fn3():
     text_info2 = FONT2.render("Sound username: " + sound_username, True, (232, 206, 255))
     text_info3 = FONT2.render("Sound original note: " + sound_note, True, (232, 206, 255))
     text_info4 = FONT2.render("No sound matches the search. Please try again.", True, (154, 42, 42))
-    text_info5 = FONT2.render("Sound License: " + sound_license, True, (232, 206, 255))
+    text_info5 = FONT2.render("Sound license: " + sound_license, True, (232, 206, 255))
 
 
 def fn4():
@@ -476,7 +476,6 @@ TITLE = pygame.font.SysFont('Raleway', 110, bold=False, italic=False)
 clock = pygame.time.Clock()
 screen = pygame.display.set_mode((window_width, window_height))
 
-text_surface = TITLE.render("sampler", True, (0, 0, 0))
 text_query = FONT2.render("What kind of sound do you want?", True, (0, 0, 0))
 text_sliders = FONT2.render("Select values for each one of this properties:", True, (0, 0, 0))
 text_info = FONT2.render("Audio's relevant data:", True, (0, 0, 0))
@@ -487,7 +486,7 @@ text_info4 = FONT2.render(" ", True, (232, 206, 255))
 text_info5 = FONT2.render("Sound license: ", True, (232, 206, 255))
 #text_play = BIGFONT.render("Now it is time to play", True, (0, 0, 0))
 
-freesound_img = pygame.image.load('freesound.png')
+freesound_img = pygame.image.load('finallogo.png')
 
 
 
@@ -533,9 +532,9 @@ button_list = [button1, button_loop, button_sustained, button_license]
 #text_list = [text1]
 
 # Sliders
-BrightnessSlider = Slider(400,  270, 300, 20, 0, SlidersResults[0]);
-WarmthSlider = Slider(400, 340, 300, 20, 1, SlidersResults[1]);
-HardnessSlider = Slider(400, 410, 300, 20, 2, SlidersResults[2]);
+BrightnessSlider = Slider(260,  270, 500, 20, 0, SlidersResults[0]);
+WarmthSlider = Slider(260, 340, 500, 20, 1, SlidersResults[1]);
+HardnessSlider = Slider(260, 410, 500, 20, 2, SlidersResults[2]);
 sliders = [BrightnessSlider, WarmthSlider, HardnessSlider]
 
 
@@ -917,7 +916,6 @@ def generate_sustained_loop(sound_path: str, loop_output_path: str, extension=20
     l = len(tdata)
     dl = l - int((len(ldata) * 0.5))
 
-
     for j in range(repetitions):
         for i in range(len(ldata)):
             tdata.append(ldata[i])
@@ -1001,7 +999,6 @@ def play_sampler(client, range, q, ql, qb, qw, qh):
         if SUSTAINED_SOUND:
             wav_path = generate_sustained_loop(wav_path, wav_path.split('.')[0] + "_l.wav", extension=20)
 
-
         audio_data, framerate_hz, channels = get_audio_data(wav_path)
         results = get_keyboard_info(keyboard_path)
         keys, tones = results
@@ -1021,7 +1018,7 @@ if __name__ == "__main__":
     while loop:
         #print(pygame.mouse.get_pos())
         screen.fill(COLOR_3)
-        pygame.display.set_caption('Query and tags')
+        pygame.display.set_caption('Freesound sampler')
 
         slider_rect = pygame.rect.Rect(100, 200, 900, 260)
         input_rect = pygame.rect.Rect(100, 480, 900, 100)
@@ -1032,12 +1029,12 @@ if __name__ == "__main__":
         draw_keyboard(screen)
 
         screen.blit(text_info, dest=(1120, 400))
-        screen.blit(text_info1, dest=(1120, 450))
-        screen.blit(text_info2, dest=(1120, 480))
-        screen.blit(text_info3, dest=(1120, 510))
-        screen.blit(text_info5, dest=(1120, 540))
+        screen.blit(text_info1, dest=(1120, 430))
+        screen.blit(text_info2, dest=(1120, 460))
+        screen.blit(text_info3, dest=(1120, 490))
+        screen.blit(text_info5, dest=(1120, 520))
         if ERROR:
-            screen.blit(text_info4, dest=(1120, 545))
+            screen.blit(text_info4, dest=(1120, 550))
 
         event_list = pygame.event.get()
         for event in event_list:
@@ -1063,22 +1060,24 @@ if __name__ == "__main__":
                     print("sound:", sound)
                     if event.type == pygame.KEYDOWN:
                         event_key = event.key
-                        if event_key in key_to_note:
-                            note, black, on = key_to_note[event_key]
-                            if not on:
-                                key_to_note[event_key] = note, black, True
-                        sound.stop()
-                        if LOOP_SOUND:
-                            sound.play(fade_ms=SOUND_FADE_MILLISECONDS, loops=-1)
-                        else:
-                            sound.play(fade_ms=SOUND_FADE_MILLISECONDS)
+                        if not ERROR:
+                            if event_key in key_to_note:
+                                note, black, on = key_to_note[event_key]
+                                if not on:
+                                    key_to_note[event_key] = note, black, True
+                            sound.stop()
+                            if LOOP_SOUND:
+                                sound.play(fade_ms=SOUND_FADE_MILLISECONDS, loops=-1)
+                            else:
+                                sound.play(fade_ms=SOUND_FADE_MILLISECONDS)
                     elif event.type == pygame.KEYUP:
                         event_key = event.key
-                        if event_key in key_to_note:
-                            note, black, on = key_to_note[event_key]
-                            if on:
-                                key_to_note[event_key] = note, black, False
-                        sound.fadeout(SOUND_FADE_MILLISECONDS)
+                        if not ERROR:
+                            if event_key in key_to_note:
+                                note, black, on = key_to_note[event_key]
+                                if on:
+                                    key_to_note[event_key] = note, black, False
+                            sound.fadeout(SOUND_FADE_MILLISECONDS)
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_RETURN:
                     fn3()
@@ -1133,8 +1132,8 @@ if __name__ == "__main__":
         for v in SliderValues:
             v.draw(screen)
 
-        screen.blit(freesound_img, (100, 30))
-        screen.blit(text_surface, dest=(650, 95))
+
+        screen.blit(freesound_img, (380, 0))
         screen.blit(text_query, dest=(120, 500))
         screen.blit(text_sliders, dest=(120, 220))
 
