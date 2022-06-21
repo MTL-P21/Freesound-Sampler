@@ -401,7 +401,6 @@ def fn3():
     print("Brightness: ", SlidersResults[0])
     print("Warmth: ", SlidersResults[1])
     print("Hardness: ", SlidersResults[2])
-    #scene = -1
     client = createClient()
     play_sampler(client, 2, Query, 4, SlidersResults[0], SlidersResults[1], SlidersResults[2])
     print("Sound name " + sound_name)
@@ -418,7 +417,6 @@ def fn3():
 
 def fn4():
     global LOOP_SOUND
-    #button_loop.txt = "SOUND LOOP = " + str(LOOP_SOUND)
     LOOP_SOUND = not LOOP_SOUND
     if LOOP_SOUND:
         button_loop.clr = COLOR_4
@@ -426,6 +424,7 @@ def fn4():
         button_loop.clr = GARNET
 
     print("LOOP_SOUND:", LOOP_SOUND)
+
 
 def fn5():
     global SUSTAINED_SOUND
@@ -436,6 +435,7 @@ def fn5():
         button_sustained.clr = GARNET
 
     print("SUSTAINED_SOUND:", SUSTAINED_SOUND)
+
 
 def fn_license_link():
     global license_link
@@ -462,16 +462,9 @@ COLOR_4 = [232, 206, 255] #Bars
 COLOR_5 = [241, 176, 143] #Not used
 GARNET = [159, 135, 200] #Bars circles and input inactive square
 
-
-#COLOR_INACTIVE = pygame.Color('lightskyblue3')
-#COLOR_ACTIVE = pygame.Color('dodgerblue2')
-#FONT = pygame.font.Font(None, 32)
 FONT = pygame.font.SysFont('Raleway', 26, bold=False, italic=False)
 FONT2 = pygame.font.SysFont('Raleway', 28, bold=False, italic=False)
-#BIGFONT = pygame.font.SysFont('Raleway', 46, bold=False, italic=False)
 TITLE = pygame.font.SysFont('Raleway', 110, bold=False, italic=False)
-#font2 = pygame.font.Font(None, 100)
-#font2 = pygame.font.SysFont('Raleway', 72, bold=False, italic=False)
 
 clock = pygame.time.Clock()
 screen = pygame.display.set_mode((window_width, window_height))
@@ -484,7 +477,6 @@ text_info2 = FONT2.render("Sound username: ", True, (232, 206, 255))
 text_info3 = FONT2.render("Sound original note: ", True, (232, 206, 255))
 text_info4 = FONT2.render(" ", True, (232, 206, 255))
 text_info5 = FONT2.render("Sound license: ", True, (232, 206, 255))
-#text_play = BIGFONT.render("Now it is time to play", True, (0, 0, 0))
 
 freesound_img = pygame.image.load('finallogo.png')
 
@@ -512,7 +504,6 @@ licenceList1 = DropDown(
     "License", ["Attribution", " Attribution Noncommercial", "Creative Commons 0"])
 
 input_box1 = InputBox(120, 530, 800 , 30, "Query")
-#input_box2 = InputBox(100, 300, 140, 32, "Tags")
 
 input_boxes = [input_box1]
 
@@ -527,9 +518,6 @@ button_license = button(position=(1520, 540), size=(500, 60), clr=COLOR_INACTIVE
 
 button1 = button(position=(850, 535), size=(200, 50), clr=COLOR_INACTIVE, cngclr=COLOR_ACTIVE, func=fn3, text='Search', font_size=26)
 button_list = [button1, button_loop, button_sustained, button_license]
-
-#text1 = text(msg=str(LOOP_SOUND), position=(300, 325), clr=[100, 100, 100], font="Segoe Print", font_size=15)
-#text_list = [text1]
 
 # Sliders
 BrightnessSlider = Slider(260,  270, 500, 20, 0, SlidersResults[0]);
@@ -641,12 +629,6 @@ def set_sampler(
         framerate_hz: int,
         channels: int):
 
-    pygame.display.set_caption("sampler")
-
-    # block events that we don't want, this must be after display.init
-    pygame.event.set_blocked(None)
-    pygame.event.set_allowed(list(ALLOWED_EVENTS))
-
     # audio
     pygame.mixer.quit()
     pygame.mixer.init(
@@ -657,7 +639,9 @@ def set_sampler(
     )
     return screen
 
-sound_by_key= None
+
+sound_by_key = None
+
 
 def play_loop(
         keys,
@@ -1038,46 +1022,6 @@ if __name__ == "__main__":
 
         event_list = pygame.event.get()
         for event in event_list:
-            if Playing:
-                if event.type == pygame.KEYDOWN or event.type == pygame.KEYUP:
-                    if event.type == pygame.QUIT:
-                        loop = False
-                        break
-                    if event.key == pygame.K_ESCAPE:
-                        loop = False
-                        break
-
-                    # print("event:", event.unicode)
-                    key = event.unicode
-                    # print("key:", key)
-
-                    if key is None:
-                        continue
-                    try:
-                        sound = sound_by_key[key]
-                    except KeyError:
-                        continue
-                    print("sound:", sound)
-                    if event.type == pygame.KEYDOWN:
-                        event_key = event.key
-                        if not ERROR:
-                            if event_key in key_to_note:
-                                note, black, on = key_to_note[event_key]
-                                if not on:
-                                    key_to_note[event_key] = note, black, True
-                            sound.stop()
-                            if LOOP_SOUND:
-                                sound.play(fade_ms=SOUND_FADE_MILLISECONDS, loops=-1)
-                            else:
-                                sound.play(fade_ms=SOUND_FADE_MILLISECONDS)
-                    elif event.type == pygame.KEYUP:
-                        event_key = event.key
-                        if not ERROR:
-                            if event_key in key_to_note:
-                                note, black, on = key_to_note[event_key]
-                                if on:
-                                    key_to_note[event_key] = note, black, False
-                            sound.fadeout(SOUND_FADE_MILLISECONDS)
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_RETURN:
                     fn3()
@@ -1109,6 +1053,45 @@ if __name__ == "__main__":
                 Query = box.getText()
             if event.type == pygame.QUIT:
                 done = True
+            if Playing:
+                if event.type == pygame.KEYDOWN or event.type == pygame.KEYUP:
+                    if event.type == pygame.QUIT:
+                        loop = False
+                        break
+                    if event.key == pygame.K_ESCAPE:
+                        loop = False
+                        break
+
+                    key = event.unicode
+
+                    if key is None:
+                        continue
+                    try:
+                        sound = sound_by_key[key]
+                    except KeyError:
+                        continue
+                    print("sound:", sound)
+                    if event.type == pygame.KEYDOWN:
+                        event_key = event.key
+                        if not ERROR:
+                            if event_key in key_to_note:
+                                note, black, on = key_to_note[event_key]
+                                if not on:
+                                    key_to_note[event_key] = note, black, True
+                            sound.stop()
+                            if LOOP_SOUND:
+                                sound.play(fade_ms=SOUND_FADE_MILLISECONDS, loops=-1)
+                            else:
+                                sound.play(fade_ms=SOUND_FADE_MILLISECONDS)
+                    elif event.type == pygame.KEYUP:
+                        event_key = event.key
+                        if not ERROR:
+                            if event_key in key_to_note:
+                                note, black, on = key_to_note[event_key]
+                                if on:
+                                    key_to_note[event_key] = note, black, False
+                            sound.fadeout(SOUND_FADE_MILLISECONDS)
+
         License = licenceList1.update(event_list)
 
         if License >= 0:
@@ -1122,8 +1105,6 @@ if __name__ == "__main__":
             box.draw(screen)
         for b in button_list:
             b.draw(screen)
-        #for t in text_list:
-            #t.draw(screen)
         for s in sliders:
             s.draw(screen)
         licenceList1.draw(screen)
@@ -1132,8 +1113,7 @@ if __name__ == "__main__":
         for v in SliderValues:
             v.draw(screen)
 
-
-        screen.blit(freesound_img, (380, 0))
+        screen.blit(freesound_img, dest=(380, 0))
         screen.blit(text_query, dest=(120, 500))
         screen.blit(text_sliders, dest=(120, 220))
 
