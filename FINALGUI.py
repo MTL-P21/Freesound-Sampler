@@ -18,7 +18,6 @@ import librosa
 import soundfile
 import freesound
 import numpy as np
-
 import webbrowser
 
 DATA_ASSET_PREFIX = "data/"
@@ -31,19 +30,15 @@ BITS_32BIT = 32
 AUDIO_ALLOWED_CHANGES_HARDWARE_DETERMINED = 0
 SOUND_FADE_MILLISECONDS = 50
 ALLOWED_EVENTS = {pygame.KEYDOWN, pygame.KEYUP, pygame.QUIT, pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP, pygame.K_ESCAPE, pygame.K_RETURN}
-LOOP_SOUND = False
-SUSTAINED_SOUND = False
-RANGE = 10
-ERROR = False
 
-# gui part
-
+# GUI
 pygame.init()
 infoObject = pygame.display.Info()
 window_width = infoObject.current_w - 100
 window_height = infoObject.current_h - 100
 loop = True
 Playing = False
+
 # Colors for keys and background
 color_grey = (127, 127, 127)
 color_white = (255, 255, 255)
@@ -52,6 +47,16 @@ color_red = (255, 0, 0)
 color_blue = (0, 0, 255)
 color_cyan = (0, 255, 255)
 color_yellow = (255, 211, 67)
+
+COLOR_INACTIVE = (159, 135, 200)
+COLOR_ACTIVE = (195, 170, 237) #Slider license active color
+COLOR_LIST_INACTIVE = (159, 135, 200)
+COLOR_LIST_ACTIVE = (195, 170, 237)
+
+COLOR_1 = [54, 96, 88] #Text input and square
+COLOR_3 = [91, 71, 130] #Background color
+COLOR_4 = [232, 206, 255] #Bars
+GARNET = [159, 135, 200] #Bars circles and input inactive square
 
 key_to_note = {
         # pygame_key_id: (pitch, black, on)
@@ -91,15 +96,20 @@ key_to_note = {
 
 # Globals to store
 Query = "Piano"
-selected_license = "Attribution"
 license_link = ""
-License = "Attribution"
+License = 4
 Brightness = 50
 Warmth = 50
 Hardness = 50
 SlidersResults = [Brightness, Warmth, Hardness]
 ANCHOR_NOTE = None
+LOOP_SOUND = False
+SUSTAINED_SOUND = False
+RANGE = 10
+ERROR = False
 
+
+# GUI objects
 
 class Slider:
     def __init__(self, x, y, w, h, pos,ivol):
@@ -134,7 +144,7 @@ class Slider:
 
     def update_volume(self, x):
         if x < self.sliderRect.x:
-            self.volume = 0
+            self.volume = 1
         elif x > self.sliderRect.x + self.sliderRect.w:
             self.volume = 100
         else:
@@ -164,7 +174,6 @@ class Slider:
             self.circle_x = x
         self.draw(screen)
         self.update_volume(x)
-        # print(self.volume)
 
 
 class OptionBox:
@@ -222,7 +231,7 @@ class OptionBox:
         return -1
 
 
-class DropDown():
+class DropDown:
 
     def __init__(self, color_menu, color_option, x, y, w, h, font, main, options):
         self.color_menu = color_menu
@@ -382,18 +391,14 @@ class text:
         screen.blit(self.txt_surf, self.position)
 
     def update(self, val):
-        self.txt_surf = self.font.render(val, 1, [232, 206, 255])
+        self.txt_surf = self.font.render(val, 1, COLOR_4)
 
 
 # call back functions
 
-
 def fn3():
-    global Query
-    global selected_license
-    global SlidersResults
-    global scene
-    global text_info1, text_info2, text_info3, text_info4, text_info5
+    global Query, selected_license, SlidersResults, scene
+    global text_info1, text_info2, text_info4, text_info5, text_info6, text_info7
 
     print("\n")
     print("Text query: ", Query)
@@ -402,17 +407,17 @@ def fn3():
     print("Warmth: ", SlidersResults[1])
     print("Hardness: ", SlidersResults[2])
     client = createClient()
-    play_sampler(client, 2, Query, 4, SlidersResults[0], SlidersResults[1], SlidersResults[2])
+    play_sampler(client, 3, Query, selected_license, SlidersResults[0], SlidersResults[1], SlidersResults[2])
     print("Sound name " + sound_name)
     print("Sound username " + sound_username)
     print("Sound license " + sound_license)
     print("Sound original note " + sound_note)
 
-    text_info1 = FONT2.render("Sound name: " + sound_name, True, (232, 206, 255))
-    text_info2 = FONT2.render("Sound username: " + sound_username, True, (232, 206, 255))
-    text_info3 = FONT2.render("Sound original note: " + sound_note, True, (232, 206, 255))
-    text_info4 = FONT2.render("No sound matches the search. Please try again.", True, (154, 42, 42))
-    text_info5 = FONT2.render("Sound license: " + sound_license, True, (232, 206, 255))
+    text_info1 = FONT2.render("Sound name: " + sound_name, True, COLOR_4)
+    text_info2 = FONT2.render("Sound username: " + sound_username, True, COLOR_4)
+    text_info5 = FONT2.render("No sound matches the search. Please try again.", True, (154, 42, 42))
+    text_info6 = FONT2.render(sound_note, True, color_cyan)
+    text_info7 = FONT2.render(sound_license, True, (0, 0, 255))
 
 
 def fn4():
@@ -449,18 +454,6 @@ def fn_license_link():
         print("No license selected yet")
 
 # COLORS
-COLOR_TRANSPARENT = (1, 1, 1)
-COLOR_INACTIVE = (159, 135, 200)
-COLOR_ACTIVE = (195, 170, 237) #Slider license active color
-COLOR_LIST_INACTIVE = (159, 135, 200)
-COLOR_LIST_ACTIVE = (195, 170, 237)
-
-COLOR_1 = [54, 96, 88] #Text input and square
-COLOR_2 = [159, 135, 200] #Slider button inactive
-COLOR_3 = [91, 71, 130] #Background color
-COLOR_4 = [232, 206, 255] #Bars
-COLOR_5 = [241, 176, 143] #Not used
-GARNET = [159, 135, 200] #Bars circles and input inactive square
 
 FONT = pygame.font.SysFont('Raleway', 26, bold=False, italic=False)
 FONT2 = pygame.font.SysFont('Raleway', 28, bold=False, italic=False)
@@ -470,47 +463,33 @@ clock = pygame.time.Clock()
 screen = pygame.display.set_mode((window_width, window_height))
 
 text_query = FONT2.render("What kind of sound do you want?", True, (0, 0, 0))
-text_sliders = FONT2.render("Select values for each one of this properties:", True, (0, 0, 0))
-text_info = FONT2.render("Audio's relevant data:", True, (0, 0, 0))
-text_info1 = FONT2.render("Sound name: ", True, (232, 206, 255))
-text_info2 = FONT2.render("Sound username: ", True, (232, 206, 255))
-text_info3 = FONT2.render("Sound original note: ", True, (232, 206, 255))
-text_info4 = FONT2.render(" ", True, (232, 206, 255))
-text_info5 = FONT2.render("Sound license: ", True, (232, 206, 255))
+text_sliders = FONT2.render("Select the desired values for each one of these properties", True, (0, 0, 0))
+text_info = FONT2.render("Audio's data", True, (0, 0, 0))
+text_info1 = FONT2.render("Sound name: ", True, COLOR_4)
+text_info2 = FONT2.render("Sound username: ", True, COLOR_4)
+text_info3 = FONT2.render("Sound original note: ", True, COLOR_4)
+text_info4 = FONT2.render("Sound license: ", True, COLOR_4)
+text_info5 = FONT2.render(" ", True, COLOR_4)
+text_info6 = FONT2.render(" ", True, COLOR_4)
+text_info7 = FONT2.render(" ", True, COLOR_4)
 
 freesound_img = pygame.image.load('finallogo.png')
-
-
-
-list1 = DropDown(
-    [COLOR_INACTIVE, COLOR_ACTIVE],
-    [COLOR_LIST_INACTIVE, COLOR_LIST_ACTIVE],
-    (window_width / 2) - 100, window_height / 3, 190, 50,
-    FONT,
-    "Chnnels", ["Single Channel", "Dual Channel"])
-
-typeList1 = DropDown(
-    [COLOR_INACTIVE, COLOR_ACTIVE],
-    [COLOR_LIST_INACTIVE, COLOR_LIST_ACTIVE],
-    (window_width / 2) - 300, window_height / 3, 190, 50,
-    FONT,
-    "Format", ["wav", "aiff", "ogg", "mp3", "m4a", "flac"])
 
 licenceList1 = DropDown(
     [COLOR_INACTIVE, COLOR_ACTIVE],
     [COLOR_LIST_INACTIVE, COLOR_LIST_ACTIVE],
-    1100, 220, 300, 70,
+    1440, 204, 300, 70,
     FONT,
     "License", ["Attribution", " Attribution Noncommercial", "Creative Commons 0"])
 
-input_box1 = InputBox(120, 530, 800 , 30, "Query")
+input_box1 = InputBox(120, 530, 800, 30, "Query")
 
 input_boxes = [input_box1]
 
-button_loop = button(position=(1600, 255), size=(300, 70), clr=COLOR_INACTIVE, cngclr=COLOR_ACTIVE,
+button_loop = button(position=(1255, 240), size=(300, 70), clr=COLOR_INACTIVE, cngclr=COLOR_ACTIVE,
                      func=fn4, text='Sound loop', font_size=26)
 
-button_sustained = button(position=(1250, 340), size=(300, 70), clr=COLOR_INACTIVE, cngclr=COLOR_ACTIVE,
+button_sustained = button(position=(1255, 330), size=(300, 70), clr=COLOR_INACTIVE, cngclr=COLOR_ACTIVE,
                      func=fn5, text='Sustained sound', font_size=26)
 
 button_license = button(position=(1520, 540), size=(500, 60), clr=COLOR_INACTIVE, cngclr=COLOR_ACTIVE,
@@ -538,12 +517,11 @@ WarmthValue = text("0", [800, 340], font_size=26)
 HardnessValue = text("0", [800, 410], font_size=26)
 SliderValues = [BrightnessValue, WarmthValue, HardnessValue];
 
-
 SliderValues[0].update(str(SlidersResults[0]))
 SliderValues[1].update(str(SlidersResults[1]))
 SliderValues[2].update(str(SlidersResults[2]))
 
-selected_license = ""
+selected_license = 4
 
 
 ###############################################################
@@ -1006,7 +984,7 @@ if __name__ == "__main__":
 
         slider_rect = pygame.rect.Rect(100, 200, 900, 260)
         input_rect = pygame.rect.Rect(100, 480, 900, 100)
-        info_rect = pygame.rect.Rect(1090, 385, 660, 200)
+        info_rect = pygame.rect.Rect(1090, 385, 670, 200)
         pygame.draw.rect(screen, (124, 102, 164), slider_rect, border_radius=20)
         pygame.draw.rect(screen, (124, 102, 164), input_rect, border_radius=20)
         pygame.draw.rect(screen, (124, 102, 164), info_rect, border_radius=20)
@@ -1016,9 +994,12 @@ if __name__ == "__main__":
         screen.blit(text_info1, dest=(1120, 430))
         screen.blit(text_info2, dest=(1120, 460))
         screen.blit(text_info3, dest=(1120, 490))
-        screen.blit(text_info5, dest=(1120, 520))
+        screen.blit(text_info4, dest=(1120, 520))
+        screen.blit(text_info6, dest=(1313, 490))
+        screen.blit(text_info7, dest=(1265, 520))
+
         if ERROR:
-            screen.blit(text_info4, dest=(1120, 550))
+            screen.blit(text_info5, dest=(1120, 550))
 
         event_list = pygame.event.get()
         for event in event_list:
@@ -1096,7 +1077,8 @@ if __name__ == "__main__":
 
         if License >= 0:
             licenceList1.main = licenceList1.options[License]
-            selected_license = licenceList1.main
+            selected_license = License + 1
+            print(selected_license)
 
         for box in input_boxes:
             box.update()
@@ -1113,7 +1095,7 @@ if __name__ == "__main__":
         for v in SliderValues:
             v.draw(screen)
 
-        screen.blit(freesound_img, dest=(380, 0))
+        screen.blit(freesound_img, dest=(380, 10))
         screen.blit(text_query, dest=(120, 500))
         screen.blit(text_sliders, dest=(120, 220))
 
@@ -1121,4 +1103,3 @@ if __name__ == "__main__":
         pygame.display.update()
         pygame.display.flip()
         clock.tick(30)
-
