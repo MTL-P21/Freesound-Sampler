@@ -358,12 +358,7 @@ def fn4():
 
     print("LOOP_SOUND:", LOOP_SOUND)
 
-pygame.mixer.init(
-    44100,
-    BITS_32BIT,
-    1,
-    allowedchanges=AUDIO_ALLOWED_CHANGES_HARDWARE_DETERMINED,
-)
+
 
 pygame.init()
 COLOR_INACTIVE = pygame.Color('lightskyblue3')
@@ -381,7 +376,7 @@ screen = pygame.display.set_mode((window_width, window_height))
 text_surface = TITLE.render("sampler", True, (0, 0, 0))
 text_query = FONT2.render("What kind of sound do you want?", True, (0, 0, 0))
 text_sliders = FONT2.render("Select values for each one of this properties:", True, (0, 0, 0))
-freesound_img = pygame.image.load('freesound.png')
+freesound_img = pygame.image.load('../freesound.png')
 
 # COLORS
 COLOR_INACTIVE = (159, 135, 200)
@@ -744,6 +739,12 @@ def play_sampler(client, range, q, ql, qb, qw, qh):
 
     remove_silence(wav_path)
     audio_data, framerate_hz, channels = get_audio_data(wav_path)
+    pygame.mixer.init(
+        framerate_hz,
+        BITS_32BIT,
+        1,
+        allowedchanges=AUDIO_ALLOWED_CHANGES_HARDWARE_DETERMINED,
+    )
     results = get_keyboard_info(keyboard_path)
     keys, tones = results
     key_sounds = get_or_create_key_sounds(

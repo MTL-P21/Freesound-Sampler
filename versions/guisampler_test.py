@@ -389,7 +389,7 @@ screen = pygame.display.set_mode((display.current_w - 50, display.current_h - 50
 
 text_surface = font2.render("sampler", True, (0, 0, 0))
 
-freesound_img = pygame.image.load('freesound.png')
+freesound_img = pygame.image.load('../freesound.png')
 
 # COLORS
 COLOR_INACTIVE = (151, 186, 169)

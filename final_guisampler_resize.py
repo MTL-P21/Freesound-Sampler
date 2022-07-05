@@ -497,7 +497,7 @@ text_info4 = FONT2.render(" ", True, (232, 206, 255))
 text_info5 = FONT2.render("Sound license: ", True, (232, 206, 255))
 #text_play = BIGFONT.render("Now it is time to play", True, (0, 0, 0))
 
-freesound_img = pygame.image.load('finallogo.png')
+freesound_img = pygame.image.load('imgs/finallogo.png')
 
 
 

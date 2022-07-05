@@ -375,7 +375,7 @@ screen = pygame.display.set_mode((window_width, window_height))
 text_surface = TITLE.render("sampler", True, (0, 0, 0))
 text_query = FONT2.render("What kind of sound do you want?", True, (0, 0, 0))
 text_sliders = FONT2.render("Select values for each one of this properties:", True, (0, 0, 0))
-freesound_img = pygame.image.load('freesound.png')
+freesound_img = pygame.image.load('../freesound.png')
 
 # COLORS
 COLOR_INACTIVE = (159, 135, 200)

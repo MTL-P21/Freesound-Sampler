@@ -473,7 +473,7 @@ text_info5 = FONT2.render(" ", True, COLOR_4)
 text_info6 = FONT2.render(" ", True, COLOR_4)
 text_info7 = FONT2.render(" ", True, COLOR_4)
 
-freesound_img = pygame.image.load('finallogo.png')
+freesound_img = pygame.image.load('imgs/finallogo.png')
 
 licenceList1 = DropDown(
     [COLOR_INACTIVE, COLOR_ACTIVE],
@@ -566,14 +566,7 @@ def get_keyboard_info(keyboard_file: str):
     return keys, tones
 
 
-def get_or_create_key_sounds(
-        wav_path: str,
-        sample_rate_hz: int,
-        channels: int,
-        tones: List[int],
-        clear_cache: bool,
-        keys: List[str],
-) -> Generator[pygame.mixer.Sound, None, None]:
+def get_or_create_key_sounds(wav_path: str, sample_rate_hz: int, channels: int, tones: List[int],clear_cache: bool, keys: List[str]) -> Generator[pygame.mixer.Sound, None, None]:
     sounds = []
     y, sr = librosa.load(wav_path, sr=sample_rate_hz, mono=channels == 1)
     file_name = os.path.splitext(os.path.basename(wav_path))[0]
@@ -1036,15 +1029,7 @@ if __name__ == "__main__":
                 done = True
             if Playing:
                 if event.type == pygame.KEYDOWN or event.type == pygame.KEYUP:
-                    if event.type == pygame.QUIT:
-                        loop = False
-                        break
-                    if event.key == pygame.K_ESCAPE:
-                        loop = False
-                        break
-
                     key = event.unicode
-
                     if key is None:
                         continue
                     try:
